@@ -37,7 +37,7 @@ The system language is **Polish** by default. You can change it in System Settin
 
 The ISO is about 2.9 GB. GitHub only allows files up to 2 GB, so the download comes in two parts that you join back into one file.
 
-**1. Download** both parts and `SHA256SUMS` from [Releases](https://github.com/cyz-yt/OrkaLinux/releases/latest).
+**1. Download** both parts and `SHA256SUMS.txt` from [Releases](https://github.com/cyz-yt/OrkaLinux/releases/latest).
 
 **2. Join the parts.** Put them in one folder, then:
 
@@ -54,10 +54,10 @@ The ISO is about 2.9 GB. GitHub only allows files up to 2 GB, so the download co
   cat OrkaLinux-B2-amd64.hybrid.iso.001 OrkaLinux-B2-amd64.hybrid.iso.002 > OrkaLinux-B2-amd64.hybrid.iso
   ```
 
-**3. Check the file.** The SHA-256 must match the one in `SHA256SUMS`.
+**3. Check the file.** The SHA-256 must match the one in `SHA256SUMS.txt`.
 
 - Windows (PowerShell): `Get-FileHash OrkaLinux-B2-amd64.hybrid.iso`
-- Linux: `sha256sum -c SHA256SUMS --ignore-missing`
+- Linux: `sha256sum -c SHA256SUMS.txt --ignore-missing`
 
 **4. Write it to a USB stick** (4 GB or bigger) with [Rufus](https://rufus.ie/), [balenaEtcher](https://etcher.balena.io/) or [Ventoy](https://www.ventoy.net/). If Rufus asks, pick **DD Image** mode.
 
