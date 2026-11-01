@@ -1,0 +1,38 @@
+---
+componentName:  orkalinux
+welcomeStyleCalamares: true
+welcomeExpandingLogo: true
+windowExpanding: normal
+windowSize: 800px,580px
+windowPlacement: center
+
+strings:
+    productName:         "@ORKA_NAME@"
+    shortProductName:    "@ORKA_NAME@"
+    version:             "@ORKA_VERSION@ (@ORKA_CODENAME@)"
+    shortVersion:        "@ORKA_VERSION@"
+    versionedName:       "@ORKA_NAME@ @ORKA_VERSION@"
+    shortVersionedName:  "@ORKA_NAME@ @ORKA_VERSION@"
+    bootloaderEntryName: "@ORKA_NAME@"
+    productUrl:          "@ORKA_URL@"
+    supportUrl:          "@ORKA_DISCORD@"
+    knownIssuesUrl:      "@ORKA_URL@"
+    releaseNotesUrl:     "@ORKA_URL@"
+
+sidebar: widget
+navigation: widget
+
+images:
+    productLogo:         "orkalinux-logo.png"
+    productIcon:         "orkalinux-logo.png"
+    productWelcome:      "orkalinux-logo.png"
+
+slideshow:               "show.qml"
+
+style:
+   SidebarBackground:    "#ffffff"
+   SidebarText:          "#000000"
+   SidebarTextCurrent:   "#000000"
+   SidebarBackgroundCurrent: "#e0e0e0"
+
+slideshowAPI: 2

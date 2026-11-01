@@ -1,0 +1,4 @@
+grub-efi
+grub-efi-amd64-signed
+shim-signed
+cryptsetup-initramfs

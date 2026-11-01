@@ -1,0 +1,22 @@
+#!/bin/sh
+set -e
+
+. ./orkalinux.conf
+
+lb config noauto \
+	--distribution trixie \
+	--architectures amd64 \
+	--archive-areas "main contrib non-free non-free-firmware" \
+	--binary-images iso-hybrid \
+	--debian-installer none \
+	--security true \
+	--updates true \
+	--firmware-chroot true \
+	--memtest none \
+	--zsync false \
+	--iso-application "$ORKA_NAME" \
+	--iso-publisher "_inc0gnit0" \
+	--iso-volume "$ORKA_NAME $ORKA_VERSION" \
+	--image-name "$ORKA_NAME-$ORKA_VERSION" \
+	--bootappend-live "boot=live components quiet splash username=orka hostname=orkalinux locales=pl_PL.UTF-8 keyboard-layouts=pl timezone=Europe/Warsaw" \
+	"${@}"

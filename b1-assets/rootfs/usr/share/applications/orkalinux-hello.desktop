@@ -1,0 +1,15 @@
+[Desktop Entry]
+
+Name=OrkaLinux Hello
+
+Comment=Witaj w OrkaLinux!
+
+Exec=/usr/share/orkalinux-hello/orkalinux-hello.py
+
+Icon=/usr/share/pixmaps/orkalinux/orkalinux-logo.png
+
+Terminal=false
+
+Type=Application
+
+Categories=System;

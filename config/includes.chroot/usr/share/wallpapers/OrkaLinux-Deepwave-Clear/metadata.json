@@ -1,0 +1,8 @@
+{
+    "KPlugin": {
+        "Authors": [ { "Name": "_inc0gnit0" } ],
+        "Id": "OrkaLinux-Deepwave-Clear",
+        "Name": "OrkaLinux (bez logo)"
+    },
+    "KPackageStructure": "Wallpaper/Images"
+}

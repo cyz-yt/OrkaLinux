@@ -1,0 +1,12 @@
+#!/bin/sh
+set -e
+
+dpkg-divert --quiet --local --rename --divert /usr/lib/os-release.debian --add /usr/lib/os-release
+
+if dpkg-divert --list /etc/os-release | grep -q os-release.debootstrap; then
+	dpkg-divert --quiet --local --remove --no-rename /etc/os-release
+fi
+dpkg-divert --quiet --local --rename --divert /etc/os-release.debian --add /etc/os-release
+
+cp /usr/share/orkalinux/os-release /usr/lib/os-release
+ln -sf ../usr/lib/os-release /etc/os-release

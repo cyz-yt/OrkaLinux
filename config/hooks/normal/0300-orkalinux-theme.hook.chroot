@@ -1,0 +1,24 @@
+#!/bin/sh
+set -e
+
+update-alternatives --install /usr/share/desktop-base/active-theme desktop-theme \
+	/usr/share/desktop-base/orkalinux-theme 100
+update-alternatives --set desktop-theme /usr/share/desktop-base/orkalinux-theme
+
+gtk-update-icon-cache -qf /usr/share/icons/hicolor || true
+
+for w in /usr/share/wallpapers/*; do
+	case "$(readlink -f "$w")" in
+		/usr/share/desktop-base/orkalinux-theme*) ;;
+		/usr/share/desktop-base/*) rm -rf "$w" ;;
+	esac
+done
+
+plymouth-set-default-theme -R orkalinux
+
+if ! grep -qs fastfetch /etc/skel/.bashrc; then
+	cat >> /etc/skel/.bashrc <<'EOF'
+
+command -v fastfetch >/dev/null && fastfetch
+EOF
+fi

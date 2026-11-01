@@ -1,0 +1,8 @@
+{
+    "KPlugin": {
+        "Authors": [ { "Name": "_inc0gnit0" } ],
+        "Id": "Pulpit-EC2-2",
+        "Name": "Pulpit sterowniczy EC-2 (2)"
+    },
+    "KPackageStructure": "Wallpaper/Images"
+}

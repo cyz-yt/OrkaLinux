@@ -1,0 +1,50 @@
+componentName: orkalinux
+
+
+
+strings:
+
+  productName: OrkaLinux
+
+  shortProductName: OrkaLinux
+
+  version: "B1 (Deepwave)"
+
+  shortVersion: "1"
+
+  versionedName: OrkaLinux B1 (Deepwave)
+
+  shortVersionedName: OrkaLinux Deepwave
+
+  bootloaderEntryName: OrkaLinux
+
+  productUrl: https://sites.google.com/view/inc0gnit0/downloads/orka-linux
+
+  supportUrl: https://sites.google.com/view/inc0gnit0/downloads/orka-linux
+
+  releaseNotesUrl: https://sites.google.com/view/inc0gnit0/downloads/orka-linux
+
+
+
+images:
+
+  productLogo: orkalinux-logo.png
+
+  productIcon: orkalinux-logo.png
+
+  productWelcome: orkalinux-logo.png
+
+
+
+slideshow: show.qml
+
+
+style:
+
+  sidebarBackground: "#e8e8e8"
+
+  sidebarText: "#1a1a1a"
+
+  sidebarTextSelect: "#4a4a4a"
+
+  sidebarTextHighlight: "#2196F3"

@@ -1,0 +1,8 @@
+{
+    "KPlugin": {
+        "Authors": [ { "Name": "mily_" } ],
+        "Id": "Karmelek-1",
+        "Name": "Karmelek 1"
+    },
+    "KPackageStructure": "Wallpaper/Images"
+}

@@ -1,0 +1,10 @@
+[Desktop Entry]
+Type=Application
+Name=OrkaLinux Hello
+Comment=Witaj w OrkaLinux!
+Comment[en]=Welcome to OrkaLinux!
+Exec=/usr/share/orkalinux-hello/orkalinux-hello.py
+Icon=orkalinux
+StartupWMClass=orkalinux-hello
+Terminal=false
+Categories=System;

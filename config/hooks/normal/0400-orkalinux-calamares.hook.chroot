@@ -1,0 +1,7 @@
+#!/bin/sh
+set -e
+
+sed -i 's/^branding:.*/branding: orkalinux/' /etc/calamares/settings.conf
+grep -q '^branding: orkalinux$' /etc/calamares/settings.conf
+
+echo "grub-efi-amd64 grub2/force_efi_extra_removable boolean true" | debconf-set-selections

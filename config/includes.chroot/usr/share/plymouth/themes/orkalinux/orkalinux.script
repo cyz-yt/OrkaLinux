@@ -1,0 +1,6 @@
+wallpaper_image = Image("OrkaLinux.png");
+screen_width = Window.GetWidth();
+screen_height = Window.GetHeight();
+resized = wallpaper_image.Scale(screen_width, screen_height);
+sprite = Sprite(resized);
+sprite.SetPosition(0, 0, -100);

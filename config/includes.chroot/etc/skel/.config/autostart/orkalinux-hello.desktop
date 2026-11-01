@@ -1,0 +1,8 @@
+[Desktop Entry]
+Type=Application
+Name=OrkaLinux Hello
+Exec=/usr/share/orkalinux-hello/orkalinux-hello.py
+Icon=orkalinux
+Hidden=false
+NoDisplay=false
+X-KDE-autostart-after=panel

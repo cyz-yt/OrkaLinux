@@ -1,0 +1,6 @@
+title-text: "OrkaLinux"
+title-color: "#ffffff"
+desktop-color: "#1a1a2e"
+message-color: "#ffffff"
+message-bg-color: "#0f9b8e"
+terminal-font: "Fixed Regular 16"

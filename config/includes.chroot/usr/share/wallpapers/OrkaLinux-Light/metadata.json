@@ -1,0 +1,8 @@
+{
+    "KPlugin": {
+        "Authors": [ { "Name": "_inc0gnit0" } ],
+        "Id": "OrkaLinux-Light",
+        "Name": "OrkaLinux Light"
+    },
+    "KPackageStructure": "Wallpaper/Images"
+}

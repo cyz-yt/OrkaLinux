@@ -1,0 +1,18 @@
+#!/bin/sh
+user=user
+for arg in $(cat /proc/cmdline); do
+	case "$arg" in
+		username=*|live-config.username=*) user="${arg#*=}" ;;
+	esac
+done
+
+home="/home/$user"
+[ -d "$home" ] || exit 0
+
+mkdir -p "$home/.config"
+cat > "$home/.config/kscreenlockerrc" <<'EOF'
+[Daemon]
+Autolock=false
+LockOnResume=false
+EOF
+chown -R "$user:$user" "$home/.config"

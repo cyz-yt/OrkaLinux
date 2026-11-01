@@ -1,0 +1,16 @@
+[Desktop Entry]
+Type=Application
+Version=1.0
+Name=Zainstaluj @ORKA_NAME@
+Name[en]=Install @ORKA_NAME@
+GenericName=Instalator systemu
+GenericName[en]=System Installer
+Comment=Zainstaluj @ORKA_NAME@ na dysku
+Comment[en]=Install @ORKA_NAME@ to your disk
+Exec=calamares-install-debian
+Keywords=calamares;system;install;installer;orkalinux;
+Icon=orkalinux
+Terminal=false
+Categories=Qt;System;
+StartupWMClass=calamares
+StartupNotify=true

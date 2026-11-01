@@ -1,0 +1,5 @@
+#!/bin/sh
+case " $* " in
+	*" --target=x86_64-efi "*) exec grub-install --force-extra-removable "$@" ;;
+esac
+exec grub-install "$@"
