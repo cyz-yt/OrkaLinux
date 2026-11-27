@@ -33,7 +33,6 @@ Change them only in `orkalinux.conf`. `build.sh` puts these values in place of e
 | Files copied into the system | `config/includes.chroot/` |
 | OrkaLinux packages (base files, wallpapers, repository key) | `config/packages.chroot/` |
 | ISO boot menu | `config/bootloaders/` |
-| Original artwork from B1 | `b1-assets/` |
 
 ## Hooks
 
@@ -57,19 +56,3 @@ Calamares runs `/usr/sbin/orkalinux-grub-install` instead of `grub-install`. On 
 ## OrkaLinux Recovery
 
 `/usr/sbin/orka-recovery` is a text menu (whiptail) that runs as its own systemd target, `orkalinux-recovery.target`, before the desktop starts. `/etc/grub.d/11_orkalinux-recovery` adds it to the GRUB menu and `/etc/kernel/install.d/91-orkalinux-recovery.install` to systemd-boot. Restore points are made with Timeshift (rsync) through `/usr/sbin/orka-kopia-helper`. Tab 2 (Ctrl+Alt+F2) shows the Recovery log while it works.
-
-## Testing in a virtual machine
-
-`test-vm.sh` starts the ISO in QEMU without a window and drives it from the command line (as root, in WSL):
-
-```bash
-bash test-vm.sh start out/OrkaLinux-B3-amd64.hybrid.iso [uefi|uefi-sb|bios] [disk]
-bash test-vm.sh start - uefi            # boot the installed system from the disk
-bash test-vm.sh shot name               # screenshot to out/screens/name.png
-bash test-vm.sh key ret tab ...         # press keys (QEMU names: ret, tab, down, spc, ctrl-alt-t)
-bash test-vm.sh type "text"             # type text
-bash test-vm.sh click X Y               # click a point (pixels from the last screenshot)
-bash test-vm.sh stop
-```
-
-`uefi-sb` turns on Secure Boot with Microsoft keys, like a typical laptop. `disk` attaches an empty 30 GB disk for installing.

@@ -1,8 +1,0 @@
-[Plymouth Theme]
-Name=OrkaLinux
-Description=OrkaLinux Boot Screen
-ModuleName=script
-
-[script]
-ImageDir=/usr/share/plymouth/themes/orkalinux
-ScriptFile=/usr/share/plymouth/themes/orkalinux/orkalinux.script
