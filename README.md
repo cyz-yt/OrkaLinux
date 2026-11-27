@@ -107,7 +107,10 @@ OrkaLinux is a beta. If something does not work, tell me on [Discord](https://di
 ## Credits
 
 - [Debian](https://www.debian.org/), [KDE](https://kde.org/), [Calamares](https://calamares.io/), [Timeshift](https://github.com/linuxmint/timeshift) and [live-build](https://salsa.debian.org/live-team/live-build)
-- Wallpapers by Caterina Berger and mily_
+- Wallpapers:
+  - mily_: the Karmelek wallpapers (Karmelek is a cat)
+  - UrbeQX: drone photos of EC-2
+  - Caterina Berger
 
 ## More from the same author
 
