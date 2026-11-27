@@ -18,7 +18,7 @@ if [ "${VERSION_CODENAME:-}" != trixie ]; then
 	echo "Uwaga: budowanie jest przygotowane pod Debiana 13 (trixie), a masz: $PRETTY_NAME" >&2
 fi
 missing=""
-for p in live-build apt-utils rsync; do
+for p in live-build apt-utils rsync curl gnupg; do
 	dpkg -s "$p" >/dev/null 2>&1 || missing="$missing $p"
 done
 if [ -n "$missing" ]; then
@@ -39,7 +39,16 @@ install -m 644 "$SRC/orkalinux.conf" orkalinux.conf
 { grep -rlIZ $'\r' auto config orkalinux.conf || true; } | xargs -0 -r sed -i 's/\r$//'
 chmod 755 auto/* config/hooks/normal/*.hook.chroot \
 	config/includes.chroot/usr/share/orkalinux-hello/orkalinux-hello.py \
-	config/includes.chroot/usr/sbin/orkalinux-grub-install \
+	config/includes.chroot/usr/share/orka-*/*.py \
+	config/includes.chroot/usr/share/orkalinux/use-systemd-boot \
+	config/includes.chroot/usr/share/orkalinux/calamares-sources-final \
+	config/includes.chroot/usr/sbin/* \
+	config/includes.chroot/usr/bin/orka-install \
+	config/includes.chroot/usr/bin/orka-exe \
+	config/includes.chroot/etc/initramfs-tools/scripts/init-bottom/orkalinux-banner \
+	config/includes.chroot/etc/grub.d/11_orkalinux-recovery \
+	config/includes.chroot/usr/lib/systemd/system-shutdown/orkalinux-goodbye \
+	config/includes.chroot/etc/kernel/install.d/91-orkalinux-recovery.install \
 	config/includes.chroot/usr/lib/live/config/*
 { grep -rlIZ '@ORKA_' config || true; } | xargs -0 -r sed -i \
 	-e "s|@ORKA_NAME@|$ORKA_NAME|g" \
@@ -48,6 +57,19 @@ chmod 755 auto/* config/hooks/normal/*.hook.chroot \
 	-e "s|@ORKA_CODENAME@|$ORKA_CODENAME|g" \
 	-e "s|@ORKA_URL@|$ORKA_URL|g" \
 	-e "s|@ORKA_DISCORD@|$ORKA_DISCORD|g"
+
+MOZILLA_FPR=35BAA0B33E9EB396F59CA838C0BA5CE6DC6315A3
+key=config/includes.chroot/etc/apt/keyrings/packages.mozilla.org.asc
+mkdir -p "$(dirname "$key")"
+curl -fsSL --retry 3 -o "$key" https://packages.mozilla.org/apt/repo-signing-key.gpg
+gpghome="$(mktemp -d)"
+fpr="$(gpg --homedir "$gpghome" --show-keys --with-colons "$key" | awk -F: '$1 == "fpr" { print $10; exit }')"
+rm -rf "$gpghome"
+if [ "$fpr" != "$MOZILLA_FPR" ]; then
+	echo "Klucz Mozilli ma zły odcisk palca: '$fpr' (oczekiwany $MOZILLA_FPR) – przerywam" >&2
+	exit 1
+fi
+chmod 644 "$key"
 
 lb config
 lb build 2>&1 | tee build.log

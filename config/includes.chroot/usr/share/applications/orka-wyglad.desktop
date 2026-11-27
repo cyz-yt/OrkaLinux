@@ -1,0 +1,16 @@
+[Desktop Entry]
+Type=Application
+Name=OrkaLinux Appearance
+Name[pl]=Wygląd systemu OrkaLinux
+Name[de]=OrkaLinux Aussehen
+Name[fr]=Apparence OrkaLinux
+Comment=Panel layout, colours, wallpaper and effects
+Comment[pl]=Układ panelu, kolory, tapeta i efekty
+Comment[de]=Leistenlayout, Farben, Hintergrund und Effekte
+Comment[fr]=Disposition, couleurs, fond d'écran et effets
+Exec=/usr/share/orka-wyglad/orka-wyglad.py
+Icon=orka-wyglad
+StartupWMClass=orka-wyglad
+Terminal=false
+Categories=Settings;System;
+Keywords=theme;panel;wallpaper;accent;look;

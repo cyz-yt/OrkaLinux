@@ -1,0 +1,8 @@
+[Unit]
+Description=OrkaLinux Recovery
+Documentation=https://github.com/cyz-yt/OrkaLinux
+Requires=basic.target orkalinux-recovery.service
+Wants=orkalinux-recovery-log.service
+After=basic.target orkalinux-recovery.service
+Conflicts=rescue.service rescue.target
+AllowIsolate=yes

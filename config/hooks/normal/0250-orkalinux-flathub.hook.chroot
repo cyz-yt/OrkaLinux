@@ -1,0 +1,17 @@
+#!/bin/sh
+set -e
+
+flatpak remote-add --system --if-not-exists flathub https://dl.flathub.org/repo/flathub.flatpakrepo
+flatpak remotes --system | grep -q '^flathub'
+
+dest=/usr/share/orkalinux/extras-icons
+mkdir -p "$dest"
+if flatpak update --appstream --system flathub >/dev/null 2>&1; then
+	icons=/var/lib/flatpak/appstream/flathub/x86_64/active/icons/128x128
+	for id in $(python3 -c 'import json; print(" ".join(a["id"] for g in json.load(open("/usr/share/orkalinux/extras.json")) for a in g["apps"]))'); do
+		if [ -f "$icons/$id.png" ]; then
+			cp "$icons/$id.png" "$dest/"
+		fi
+	done
+fi
+echo "Ikony dodatkowych programów: $(ls "$dest" | wc -l)"

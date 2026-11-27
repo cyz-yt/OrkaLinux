@@ -1,0 +1,12 @@
+[Unit]
+Description=OrkaLinux: aktualizacja Discorda
+Documentation=file:///usr/sbin/orkalinux-discord-update
+Wants=network-online.target
+After=network-online.target
+ConditionKernelCommandLine=!boot=live
+
+[Service]
+Type=oneshot
+ExecStart=/usr/sbin/orkalinux-discord-update
+Nice=10
+IOSchedulingClass=idle

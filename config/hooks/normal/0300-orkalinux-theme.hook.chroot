@@ -14,11 +14,27 @@ for w in /usr/share/wallpapers/*; do
 	esac
 done
 
+ln -sf .face /etc/skel/.face.icon
+if [ -e /usr/share/sddm/faces/.face.icon ]; then
+	dpkg-divert --quiet --local --rename --divert /usr/share/sddm/faces/.face.icon.debian \
+		--add /usr/share/sddm/faces/.face.icon
+fi
+install -D -m 644 /usr/share/orkalinux/avatar.png /usr/share/sddm/faces/.face.icon
+
 plymouth-set-default-theme -R orkalinux
 
 if ! grep -qs fastfetch /etc/skel/.bashrc; then
 	cat >> /etc/skel/.bashrc <<'EOF'
 
+if command -v starship >/dev/null; then
+	[ -f ~/.config/starship.toml ] || export STARSHIP_CONFIG=/usr/share/orkalinux/starship.toml
+	eval "$(starship init bash)"
+fi
+
 command -v fastfetch >/dev/null && fastfetch
 EOF
+fi
+
+if [ -x /usr/bin/kitty ]; then
+	update-alternatives --set x-terminal-emulator /usr/bin/kitty
 fi

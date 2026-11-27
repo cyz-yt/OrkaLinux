@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 64 64">
+  <title>YouTube</title>
+  <rect x="5" y="14" width="54" height="38" rx="11" fill="#000000" fill-opacity="0.18"/>
+  <rect x="5" y="12" width="54" height="38" rx="11" fill="#ff1f3d"/>
+  <path d="M26.5 22.5 L42 31 L26.5 39.5 Z" fill="#ffffff" stroke="#ffffff" stroke-width="2" stroke-linejoin="round"/>
+</svg>

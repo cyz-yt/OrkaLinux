@@ -1,0 +1,9 @@
+#!/bin/sh
+set -e
+
+dest=/usr/share/orkalinux/systemd-boot-debs
+mkdir -p "$dest/partial"
+apt-get update
+apt-get install -y --download-only -o Dir::Cache::archives="$dest" systemd-boot
+rm -rf "$dest/partial" "$dest/lock"
+ls "$dest"/systemd-boot_*.deb

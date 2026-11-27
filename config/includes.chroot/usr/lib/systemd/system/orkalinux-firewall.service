@@ -1,0 +1,11 @@
+[Unit]
+Description=OrkaLinux firewall (first boot)
+After=ufw.service
+ConditionPathExists=!/var/lib/orkalinux/firewall-done
+
+[Service]
+Type=oneshot
+ExecStart=/usr/sbin/orkalinux-firewall
+
+[Install]
+WantedBy=multi-user.target

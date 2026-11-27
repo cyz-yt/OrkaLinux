@@ -1,0 +1,27 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 64 64">
+  <title>Kopia zapasowa OrkaLinux</title>
+  <defs>
+    <linearGradient id="bg" x1="8" y1="4" x2="56" y2="60" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#18b4e0"/>
+      <stop offset="1" stop-color="#2b3bff"/>
+    </linearGradient>
+    <linearGradient id="hi" x1="0" y1="4" x2="0" y2="34" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#ffffff" stop-opacity="0.22"/>
+      <stop offset="1" stop-color="#ffffff" stop-opacity="0"/>
+    </linearGradient>
+  </defs>
+  <rect x="4" y="4" width="56" height="56" rx="14" fill="url(#bg)"/>
+  <rect x="4" y="4" width="56" height="30" rx="14" fill="url(#hi)"/>
+  <path fill="#ffffff" fill-opacity="0.10" d="M4.33 49 C 16 43, 28 54, 40 48 S 56 42, 60 44 V 46 A 14 14 0 0 1 46 60 H 18 A 14 14 0 0 1 4.33 49 Z"/>
+  <path fill="#ffffff" fill-opacity="0.10" d="M6.51 54 C 18 50, 30 58, 44 53 S 58 50, 59.08 51 A 14 14 0 0 1 46 60 H 18 A 14 14 0 0 1 6.51 54 Z"/>
+  <g transform="translate(0 1.2)" fill="none" stroke="#000000" stroke-opacity="0.18" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M18 33 A 14 14 0 1 1 22.1 42.9" stroke-width="4"/>
+    <path d="M32 24.5 V 33 L 38 36.5" stroke-width="3.6"/>
+  </g>
+  <path transform="translate(0 1.2)" d="M12.6 31 L23.4 31 L18 38.4 Z" fill="#000000" fill-opacity="0.18" stroke-linejoin="round"/>
+  <g transform="translate(0 0.0)" fill="none" stroke="#ffffff" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M18 33 A 14 14 0 1 1 22.1 42.9" stroke-width="4"/>
+    <path d="M32 24.5 V 33 L 38 36.5" stroke-width="3.6"/>
+  </g>
+  <path transform="translate(0 0.0)" d="M12.6 31 L23.4 31 L18 38.4 Z" fill="#ffffff" stroke-linejoin="round"/>
+</svg>

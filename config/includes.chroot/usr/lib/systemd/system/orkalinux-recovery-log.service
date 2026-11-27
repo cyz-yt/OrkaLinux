@@ -1,0 +1,16 @@
+[Unit]
+Description=OrkaLinux Recovery log
+DefaultDependencies=no
+Conflicts=shutdown.target getty@tty2.service
+After=basic.target
+Before=shutdown.target
+
+[Service]
+ExecStartPre=/usr/bin/touch /var/log/orka-recovery.log
+ExecStart=/usr/bin/tail -n 40 -F /var/log/orka-recovery.log /run/orka-recovery-restore.log
+StandardInput=tty
+StandardOutput=tty
+TTYPath=/dev/tty2
+TTYReset=yes
+TTYVHangup=yes
+Restart=always

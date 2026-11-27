@@ -1,0 +1,27 @@
+#!/bin/sh
+COMMAND="$1"
+KERNEL_VERSION="$2"
+[ "$KERNEL_INSTALL_LAYOUT" = bls ] || exit 0
+BOOT="${KERNEL_INSTALL_BOOT_ROOT:-/boot/efi}"
+TOKEN="${KERNEL_INSTALL_ENTRY_TOKEN:-$KERNEL_INSTALL_MACHINE_ID}"
+entries="$BOOT/loader/entries"
+target="$entries/orkalinux-recovery.conf"
+
+newest="$(ls -1 /boot/vmlinuz-* /usr/lib/modules/*/vmlinuz 2>/dev/null | sed 's|^/boot/vmlinuz-||; s|^/usr/lib/modules/||; s|/vmlinuz$||' | sort -uV | tail -n 1)"
+
+case "$COMMAND" in
+	add)
+		[ "$KERNEL_VERSION" = "$newest" ] || exit 0
+		src="$entries/$TOKEN-$KERNEL_VERSION.conf"
+		[ -f "$src" ] || exit 0
+		sed -e 's/^title .*/title      OrkaLinux Recovery/' \
+			-e '/^sort-key/d' \
+			-e '/^options /{s/ quiet//g; s/ splash//g; s/$/ systemd.unit=orkalinux-recovery.target plymouth.enable=0/}' \
+			"$src" > "$target"
+		echo "sort-key   orkalinux-recovery" >> "$target"
+		;;
+	remove)
+		[ -f "$target" ] && grep -q "/$KERNEL_VERSION/" "$target" && rm -f "$target"
+		;;
+esac
+exit 0

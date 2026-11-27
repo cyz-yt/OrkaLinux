@@ -1,0 +1,21 @@
+{
+    "KPackageStructure": "Plasma/LookAndFeel",
+    "KPlugin": {
+        "Authors": [
+            {
+                "Name": "_inc0gnit0"
+            }
+        ],
+        "Category": "",
+        "Description": "Dark OrkaLinux look: navy colours, blue-violet accent, Orka splash screen",
+        "Description[pl]": "Ciemny wygląd OrkaLinux: granatowe kolory, niebiesko-fioletowy akcent, ekran ładowania z orką",
+        "Id": "org.orkalinux.desktop",
+        "License": "GPL-3.0-or-later",
+        "Name": "OrkaLinux Dark",
+        "Name[pl]": "OrkaLinux (ciemny)",
+        "Version": "3",
+        "Website": "https://github.com/cyz-yt/OrkaLinux"
+    },
+    "X-Plasma-APIVersion": "2",
+    "X-Plasma-MainScript": "defaults"
+}

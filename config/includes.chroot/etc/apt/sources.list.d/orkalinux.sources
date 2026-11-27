@@ -1,0 +1,5 @@
+Types: deb
+URIs: https://cyz-yt.github.io/orkalinux-repo
+Suites: stable
+Components: main
+Signed-By: /usr/share/keyrings/orkalinux-archive-keyring.gpg

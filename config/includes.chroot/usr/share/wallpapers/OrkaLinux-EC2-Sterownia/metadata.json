@@ -1,0 +1,12 @@
+{
+    "KPlugin": {
+        "Authors": [
+            {
+                "Name": "_inc0gnit0"
+            }
+        ],
+        "Id": "OrkaLinux-EC2-Sterownia",
+        "Name": "Sterownia EC-2"
+    },
+    "KPackageStructure": "Wallpaper/Images"
+}

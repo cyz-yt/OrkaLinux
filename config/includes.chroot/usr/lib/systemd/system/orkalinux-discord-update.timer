@@ -1,0 +1,10 @@
+[Unit]
+Description=OrkaLinux: sprawdzanie nowej wersji Discorda
+
+[Timer]
+OnBootSec=3min
+OnUnitActiveSec=6h
+RandomizedDelaySec=10min
+
+[Install]
+WantedBy=timers.target

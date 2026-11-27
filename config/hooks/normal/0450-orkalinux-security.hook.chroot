@@ -1,0 +1,10 @@
+#!/bin/sh
+set -e
+
+systemctl enable orkalinux-firewall.service
+
+cat > /etc/apt/apt.conf.d/20auto-upgrades <<'EOF'
+APT::Periodic::Update-Package-Lists "1";
+APT::Periodic::Unattended-Upgrade "1";
+EOF
+grep -q 'Unattended-Upgrade "1"' /etc/apt/apt.conf.d/20auto-upgrades

@@ -1,0 +1,11 @@
+#!/bin/sh
+set -e
+done=/var/lib/orkalinux/firewall-done
+[ -e "$done" ] && exit 0
+ufw default deny incoming
+ufw default allow outgoing
+ufw allow 1714:1764/udp comment "KDE Connect"
+ufw allow 1714:1764/tcp comment "KDE Connect"
+ufw --force enable
+mkdir -p "$(dirname "$done")"
+touch "$done"

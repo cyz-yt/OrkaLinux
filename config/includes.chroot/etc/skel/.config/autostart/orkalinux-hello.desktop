@@ -2,7 +2,7 @@
 Type=Application
 Name=OrkaLinux Hello
 Exec=/usr/share/orkalinux-hello/orkalinux-hello.py
-Icon=orkalinux
+Icon=orka-hello
 Hidden=false
 NoDisplay=false
 X-KDE-autostart-after=panel

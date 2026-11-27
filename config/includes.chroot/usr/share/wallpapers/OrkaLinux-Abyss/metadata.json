@@ -1,0 +1,8 @@
+{
+    "KPlugin": {
+        "Authors": [ { "Name": "_inc0gnit0" } ],
+        "Id": "OrkaLinux-Abyss",
+        "Name": "Głębia OrkaLinux"
+    },
+    "KPackageStructure": "Wallpaper/Images"
+}

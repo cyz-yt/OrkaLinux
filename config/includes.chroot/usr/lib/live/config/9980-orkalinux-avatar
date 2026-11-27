@@ -1,0 +1,24 @@
+#!/bin/sh
+user=user
+for arg in $(cat /proc/cmdline); do
+	case "$arg" in
+		username=*|live-config.username=*) user="${arg#*=}" ;;
+	esac
+done
+
+id "$user" >/dev/null 2>&1 || exit 0
+[ -f /usr/share/orkalinux/avatar.png ] || exit 0
+
+icon="/var/lib/AccountsService/icons/$user"
+conf="/var/lib/AccountsService/users/$user"
+mkdir -p /var/lib/AccountsService/icons /var/lib/AccountsService/users
+install -m 644 /usr/share/orkalinux/avatar.png "$icon"
+
+if [ -f "$conf" ]; then
+	sed -i '/^Icon=/d' "$conf"
+	grep -q '^\[User\]' "$conf" || printf '[User]\n' >> "$conf"
+	sed -i "/^\[User\]/a Icon=$icon" "$conf"
+else
+	printf '[User]\nIcon=%s\nSystemAccount=false\n' "$icon" > "$conf"
+fi
+chmod 600 "$conf"

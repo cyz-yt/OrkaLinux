@@ -3,7 +3,7 @@ componentName:  orkalinux
 welcomeStyleCalamares: true
 welcomeExpandingLogo: true
 windowExpanding: normal
-windowSize: 800px,580px
+windowSize: 960px,660px
 windowPlacement: center
 
 strings:
@@ -17,22 +17,22 @@ strings:
     productUrl:          "@ORKA_URL@"
     supportUrl:          "@ORKA_DISCORD@"
     knownIssuesUrl:      "@ORKA_URL@"
-    releaseNotesUrl:     "@ORKA_URL@"
+    releaseNotesUrl:     "https://github.com/cyz-yt/OrkaLinux/releases"
 
-sidebar: widget
-navigation: widget
+sidebar: qml,top
+navigation: qml,bottom
 
 images:
-    productLogo:         "orkalinux-logo.png"
-    productIcon:         "orkalinux-logo.png"
-    productWelcome:      "orkalinux-logo.png"
+    productLogo:         "orkalinux-logo-white.png"
+    productIcon:         "orka-install.png"
+    productWelcome:      "orkalinux-logo-white.png"
 
 slideshow:               "show.qml"
 
 style:
-   SidebarBackground:    "#ffffff"
-   SidebarText:          "#000000"
-   SidebarTextCurrent:   "#000000"
-   SidebarBackgroundCurrent: "#e0e0e0"
+   SidebarBackground:    "#13152a"
+   SidebarText:          "#eceefa"
+   SidebarTextCurrent:   "#ffffff"
+   SidebarBackgroundCurrent: "#4f58f0"
 
 slideshowAPI: 2

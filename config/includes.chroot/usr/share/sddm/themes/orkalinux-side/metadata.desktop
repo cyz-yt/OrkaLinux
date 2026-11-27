@@ -1,0 +1,13 @@
+[SddmGreeterTheme]
+Name=OrkaLinux Side
+Description=Zegar i logowanie na ciemnym panelu z lewej
+Author=_inc0gnit0
+Website=https://github.com/cyz-yt/OrkaLinux
+License=GPL-3.0+
+Type=sddm-theme
+Version=1.0
+MainScript=Main.qml
+ConfigFile=theme.conf
+Theme-Id=orkalinux-side
+Theme-API=2.0
+QtVersion=6

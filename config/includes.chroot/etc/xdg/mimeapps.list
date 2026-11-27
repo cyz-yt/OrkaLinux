@@ -1,0 +1,21 @@
+[Default Applications]
+text/html=firefox.desktop
+application/xhtml+xml=firefox.desktop
+x-scheme-handler/http=firefox.desktop
+x-scheme-handler/https=firefox.desktop
+application/x-ms-dos-executable=orka-exe.desktop
+application/x-msdownload=orka-exe.desktop
+application/vnd.microsoft.portable-executable=orka-exe.desktop
+application/x-msi=orka-exe.desktop
+application/x-ms-shortcut=orka-exe.desktop
+
+[Added Associations]
+text/html=firefox.desktop;
+application/xhtml+xml=firefox.desktop;
+x-scheme-handler/http=firefox.desktop;
+x-scheme-handler/https=firefox.desktop;
+application/x-ms-dos-executable=orka-exe.desktop;
+application/x-msdownload=orka-exe.desktop;
+application/vnd.microsoft.portable-executable=orka-exe.desktop;
+application/x-msi=orka-exe.desktop;
+application/x-ms-shortcut=orka-exe.desktop;

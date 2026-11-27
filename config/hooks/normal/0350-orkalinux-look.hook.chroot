@@ -1,0 +1,37 @@
+#!/bin/sh
+set -e
+
+SCHEME=/usr/share/color-schemes/OrkaLinuxDark.colors
+LNF=/usr/share/plasma/look-and-feel
+test -s "$SCHEME"
+test -s /usr/share/color-schemes/OrkaLinuxLight.colors
+test -s "$LNF/org.orkalinux.desktop/metadata.json"
+test -s "$LNF/org.orkalinux.light.desktop/metadata.json"
+
+cp -r "$LNF/org.orkalinux.desktop/contents/layouts" "$LNF/org.orkalinux.desktop/contents/splash" \
+	"$LNF/org.orkalinux.light.desktop/contents/"
+
+if dpkg -S /etc/xdg/kdeglobals >/dev/null 2>&1; then
+	echo "UWAGA: /etc/xdg/kdeglobals należy do paczki $(dpkg -S /etc/xdg/kdeglobals) – nadpisuję" >&2
+fi
+
+{
+	cat <<'EOF'
+[General]
+ColorScheme=OrkaLinuxDark
+TerminalApplication=kitty
+TerminalService=kitty.desktop
+
+[Icons]
+Theme=breeze-dark
+
+[KDE]
+LookAndFeelPackage=org.orkalinux.desktop
+widgetStyle=Breeze
+contrast=4
+
+EOF
+	awk '/^\[/ { keep = ($0 ~ /^\[(Colors|ColorEffects|WM)/) } keep' "$SCHEME"
+} > /etc/xdg/kdeglobals
+
+grep -q '^\[Colors:Window\]' /etc/xdg/kdeglobals

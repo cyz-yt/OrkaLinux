@@ -1,0 +1,12 @@
+{
+    "KPlugin": {
+        "Authors": [
+            {
+                "Name": "UrbeQX"
+            }
+        ],
+        "Id": "OrkaLinux-EC2-Politechniki",
+        "Name": "EC-2 od Al. Politechniki"
+    },
+    "KPackageStructure": "Wallpaper/Images"
+}

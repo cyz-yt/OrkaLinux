@@ -1,0 +1,42 @@
+#!/bin/sh
+set -e
+[ "$(id -u)" = 0 ] || { echo "Uruchom przez sudo" >&2; exit 1; }
+
+case "$1 $2" in
+	"firewall on")
+		ufw allow 1714:1764/udp comment "KDE Connect" >/dev/null
+		ufw allow 1714:1764/tcp comment "KDE Connect" >/dev/null
+		ufw --force enable
+		;;
+	"firewall off")
+		ufw disable
+		;;
+	"autoupdate on"|"autoupdate off")
+		[ "$2" = on ] && v=1 || v=0
+		printf 'APT::Periodic::Update-Package-Lists "1";\nAPT::Periodic::Unattended-Upgrade "%s";\n' "$v" \
+			> /etc/apt/apt.conf.d/20auto-upgrades
+		echo "Unattended-Upgrade = $v"
+		;;
+	"recadmin on"|"recadmin off")
+		[ "$2" = on ] && v=yes || v=no
+		mkdir -p /etc/orkalinux
+		printf '# OrkaLinux Recovery: zmiana hasla i terminal (ustawia Centrum OrkaLinux)\nALLOW_ADMIN=%s\n' "$v" \
+			> /etc/orkalinux/recovery.conf
+		echo "ALLOW_ADMIN = $v"
+		;;
+	"recovery ")
+		if [ -f /boot/grub/grub.cfg ] && grep -q "'OrkaLinux Recovery'" /boot/grub/grub.cfg; then
+			grub-reboot "OrkaLinux Recovery"
+		elif [ -f /boot/efi/loader/entries/orkalinux-recovery.conf ]; then
+			bootctl set-oneshot orkalinux-recovery.conf
+		else
+			echo "Nie ma wpisu OrkaLinux Recovery w menu startowym" >&2
+			exit 1
+		fi
+		systemctl reboot
+		;;
+	*)
+		echo "Użycie: orka-centrum-helper firewall|autoupdate|recadmin on|off | recovery" >&2
+		exit 1
+		;;
+esac

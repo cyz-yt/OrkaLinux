@@ -1,0 +1,8 @@
+[Plymouth Theme]
+Name=OrkaLinux (kropki)
+Description=OrkaLinux Boot Screen with spinning dots
+ModuleName=script
+
+[script]
+ImageDir=/usr/share/plymouth/themes/orkalinux-dots
+ScriptFile=/usr/share/plymouth/themes/orkalinux-dots/orkalinux-dots.script

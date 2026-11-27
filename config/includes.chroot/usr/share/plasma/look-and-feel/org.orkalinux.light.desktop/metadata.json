@@ -1,0 +1,21 @@
+{
+    "KPackageStructure": "Plasma/LookAndFeel",
+    "KPlugin": {
+        "Authors": [
+            {
+                "Name": "_inc0gnit0"
+            }
+        ],
+        "Category": "",
+        "Description": "Light OrkaLinux look: white windows, blue-violet accent, light Undertow wallpaper",
+        "Description[pl]": "Jasny wygląd OrkaLinux: białe okna, niebiesko-fioletowy akcent, jasna tapeta Undertow",
+        "Id": "org.orkalinux.light.desktop",
+        "License": "GPL-3.0-or-later",
+        "Name": "OrkaLinux Light",
+        "Name[pl]": "OrkaLinux (jasny)",
+        "Version": "3",
+        "Website": "https://github.com/cyz-yt/OrkaLinux"
+    },
+    "X-Plasma-APIVersion": "2",
+    "X-Plasma-MainScript": "defaults"
+}

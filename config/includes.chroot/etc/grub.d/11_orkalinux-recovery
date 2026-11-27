@@ -1,0 +1,35 @@
+#!/bin/sh
+set -e
+
+prefix="/usr"
+exec_prefix="/usr"
+datarootdir="/usr/share"
+. "$datarootdir/grub/grub-mkconfig_lib"
+
+kernel="$(ls -1 /boot/vmlinuz-* 2>/dev/null | sort -V | tail -n 1)"
+[ -n "$kernel" ] || exit 0
+version="${kernel#/boot/vmlinuz-}"
+initrd="/boot/initrd.img-$version"
+
+if [ -z "$GRUB_DEVICE_UUID" ] || [ "$GRUB_DISABLE_LINUX_UUID" = true ] \
+	|| ! test -e "/dev/disk/by-uuid/$GRUB_DEVICE_UUID"; then
+	root_dev="$GRUB_DEVICE"
+else
+	root_dev="UUID=$GRUB_DEVICE_UUID"
+fi
+case "$GRUB_FS" in
+	btrfs)
+		rootsubvol="$(make_system_path_relative_to_its_root /)"
+		rootsubvol="${rootsubvol#/}"
+		[ -n "$rootsubvol" ] && GRUB_CMDLINE_LINUX="rootflags=subvol=$rootsubvol $GRUB_CMDLINE_LINUX"
+		;;
+esac
+
+boot_path="$(make_system_path_relative_to_its_root /boot)"
+echo "Found OrkaLinux Recovery: $kernel" >&2
+echo "menuentry 'OrkaLinux Recovery' --class recovery --class os {"
+prepare_grub_to_access_device "$GRUB_DEVICE_BOOT" | sed 's/^/\t/'
+echo "	echo 'OrkaLinux Recovery...'"
+echo "	linux $boot_path/vmlinuz-$version root=$root_dev ro $GRUB_CMDLINE_LINUX systemd.unit=orkalinux-recovery.target plymouth.enable=0"
+[ -e "$initrd" ] && echo "	initrd $boot_path/initrd.img-$version"
+echo "}"

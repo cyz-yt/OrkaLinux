@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE policyconfig PUBLIC
+ "-//freedesktop//DTD PolicyKit Policy Configuration 1.0//EN"
+ "http://www.freedesktop.org/standards/PolicyKit/1/policyconfig.dtd">
+<!-- Kopia zapasowa OrkaLinux: hasło raz na kilka minut zamiast przy każdym kliknięciu -->
+<policyconfig>
+  <vendor>OrkaLinux</vendor>
+  <action id="org.orkalinux.kopia">
+    <description>Manage restore points</description>
+    <description xml:lang="pl">Zarządzanie punktami przywracania</description>
+    <description xml:lang="de">Wiederherstellungspunkte verwalten</description>
+    <description xml:lang="fr">Gérer les points de restauration</description>
+    <message>Kopia zapasowa OrkaLinux needs your password to manage restore points</message>
+    <message xml:lang="pl">Kopia zapasowa OrkaLinux potrzebuje hasła, żeby zarządzać punktami przywracania</message>
+    <message xml:lang="de">Kopia zapasowa OrkaLinux braucht dein Passwort, um Wiederherstellungspunkte zu verwalten</message>
+    <message xml:lang="fr">Kopia zapasowa OrkaLinux a besoin de ton mot de passe pour gérer les points de restauration</message>
+    <icon_name>orka-kopia</icon_name>
+    <defaults>
+      <allow_any>auth_admin</allow_any>
+      <allow_inactive>auth_admin</allow_inactive>
+      <allow_active>auth_admin_keep</allow_active>
+    </defaults>
+    <annotate key="org.freedesktop.policykit.exec.path">/usr/sbin/orka-kopia-helper</annotate>
+  </action>
+</policyconfig>

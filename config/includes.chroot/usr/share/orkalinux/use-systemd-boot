@@ -1,0 +1,43 @@
+#!/bin/sh
+set -e
+
+if [ ! -d /sys/firmware/efi ]; then
+	echo "Komputer bez UEFI – zostaje GRUB"
+	exit 0
+fi
+
+root="$(awk '$1 !~ /^#/ && $2 == "/" { print $1; exit }' /etc/fstab)"
+opts="$(awk '$1 !~ /^#/ && $2 == "/" { print $4; exit }' /etc/fstab)"
+if [ -z "$root" ]; then
+	echo "Nie znalazłem / w /etc/fstab" >&2
+	exit 1
+fi
+cmdline="root=$root ro quiet splash"
+sub="$(echo "$opts" | tr ',' '\n' | grep '^subvol=' || true)"
+[ -n "$sub" ] && cmdline="$cmdline rootflags=$sub"
+mkdir -p /etc/kernel
+echo "$cmdline" > /etc/kernel/cmdline
+
+debs=/usr/share/orkalinux/systemd-boot-debs
+dpkg --unpack "$debs"/*.deb
+bootctl install --esp-path=/boot/efi
+dpkg --configure -a
+cat > /boot/efi/loader/loader.conf <<'CONF'
+timeout 3
+console-mode keep
+editor no
+CONF
+
+for kernel in /boot/vmlinuz-*; do
+	[ -e "$kernel" ] || continue
+	version="${kernel#/boot/vmlinuz-}"
+	if [ -e "/boot/initrd.img-$version" ]; then
+		kernel-install add "$version" "$kernel" "/boot/initrd.img-$version"
+	else
+		kernel-install add "$version" "$kernel"
+	fi
+done
+
+apt-get purge -y grub-efi-amd64 grub-efi-amd64-signed grub-efi-amd64-bin \
+	shim-signed shim-signed-common || true
+rm -rf /boot/efi/EFI/debian /boot/grub "$debs"

@@ -5,3 +5,5 @@ export DEBIAN_FRONTEND=noninteractive
 curl -fL --retry 3 -o /tmp/discord.deb "https://discord.com/api/download?platform=linux&format=deb"
 apt-get install -y /tmp/discord.deb
 rm -f /tmp/discord.deb
+
+systemctl enable orkalinux-discord-update.timer

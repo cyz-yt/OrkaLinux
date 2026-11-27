@@ -1,0 +1,12 @@
+{
+    "KPlugin": {
+        "Authors": [
+            {
+                "Name": "UrbeQX"
+            }
+        ],
+        "Id": "OrkaLinux-EC2-Kominy",
+        "Name": "EC-2 od strony dawnych kominów"
+    },
+    "KPackageStructure": "Wallpaper/Images"
+}

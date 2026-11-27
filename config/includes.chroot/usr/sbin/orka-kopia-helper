@@ -1,0 +1,283 @@
+#!/usr/bin/env python3
+import json
+import os
+import re
+import shutil
+import subprocess
+import sys
+import tempfile
+import time
+
+CONFIG = "/etc/timeshift/timeshift.json"
+AUTO_FLAG = "/etc/orkalinux/kopia-auto"
+PENDING = "/var/lib/orkalinux/restore-pending"
+NAME_RE = re.compile(r"^\d{4}-\d{2}-\d{2}_\d{2}-\d{2}-\d{2}$")
+
+
+def die(msg, code=1):
+    print(msg, file=sys.stderr)
+    sys.exit(code)
+
+
+def root_info():
+    out = subprocess.run(["findmnt", "-n", "-o", "SOURCE,UUID,FSTYPE,OPTIONS", "/"],
+                         capture_output=True, text=True).stdout.split()
+    if len(out) < 3:
+        die("Nie znalazłem partycji systemu")
+    source = re.sub(r"\[.*\]$", "", out[0])
+    return source, out[1], out[2], out[3] if len(out) > 3 else ""
+
+
+def load_config():
+    try:
+        with open(CONFIG, encoding="utf-8") as f:
+            return json.load(f)
+    except (OSError, ValueError):
+        return None
+
+
+def save_config(cfg):
+    os.makedirs(os.path.dirname(CONFIG), exist_ok=True)
+    with open(CONFIG, "w", encoding="utf-8") as f:
+        json.dump(cfg, f, indent=2)
+
+
+def setup():
+    source, uuid, fstype, options = root_info()
+    btrfs = fstype == "btrfs" and "subvol=/@" in options
+    cfg = load_config() or {}
+    cfg.update({
+        "backup_device_uuid": uuid,
+        "parent_device_uuid": "",
+        "do_first_run": "false",
+        "btrfs_mode": "true" if btrfs else "false",
+        "include_btrfs_home_for_backup": "false",
+        "include_btrfs_home_for_restore": "false",
+        "stop_cron_emails": "true",
+        "schedule_monthly": "false",
+        "schedule_weekly": "false",
+        "schedule_daily": cfg.get("schedule_daily", "true"),
+        "schedule_hourly": "false",
+        "schedule_boot": "false",
+        "count_monthly": "2",
+        "count_weekly": "3",
+        "count_daily": "5",
+        "count_hourly": "6",
+        "count_boot": "5",
+        "date_format": "%Y-%m-%d %H:%M:%S",
+        "exclude": ["/root/**", "/home/*/**"],
+        "exclude-apps": [],
+    })
+    save_config(cfg)
+    os.makedirs(os.path.dirname(AUTO_FLAG), exist_ok=True)
+    open(AUTO_FLAG, "w").close()
+    print("ok")
+
+
+LOG = "/var/log/orka-kopia.log"
+
+
+def timeshift(*args):
+    res = subprocess.run(["timeshift", *args, "--scripted"], text=True,
+                         stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+    try:
+        with open(LOG, "a", encoding="utf-8") as f:
+            f.write("\n=== %s timeshift %s (kod %d)\n%s" % (time.strftime("%Y-%m-%d %H:%M:%S"),
+                                                         " ".join(args), res.returncode, res.stdout))
+    except OSError:
+        pass
+    sys.stdout.write(res.stdout)
+    return res
+
+
+def timeshift_live(*args):
+    proc = subprocess.Popen(["timeshift", *args, "--scripted"], stdin=subprocess.PIPE,
+                            stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+    try:
+        proc.stdin.write(b"\n" * 64)
+        proc.stdin.close()
+    except OSError:
+        pass
+    chunks = []
+    while True:
+        chunk = os.read(proc.stdout.fileno(), 4096)
+        if not chunk:
+            break
+        chunks.append(chunk)
+        sys.stdout.buffer.write(chunk)
+        sys.stdout.flush()
+    code = proc.wait()
+    try:
+        with open(LOG, "a", encoding="utf-8") as f:
+            f.write("\n=== %s timeshift %s (kod %d)\n%s" % (time.strftime("%Y-%m-%d %H:%M:%S"), " ".join(args),
+                                                         code, b"".join(chunks).decode("utf-8", "replace")))
+    except OSError:
+        pass
+    return code
+
+
+def snapshots():
+    out = subprocess.run(["timeshift", "--list", "--scripted"], capture_output=True, text=True).stdout
+    found = []
+    for line in out.splitlines():
+        m = re.match(r"^\s*\d+\s+>\s+(\d{4}-\d{2}-\d{2}_\d{2}-\d{2}-\d{2})\s+([ODWMHB]*)\s*(.*)$", line)
+        if m:
+            found.append({"name": m.group(1), "tags": m.group(2), "comment": m.group(3).strip()})
+    return found
+
+
+def set_comment(name, text):
+    """Opis punktu siedzi w info.json obok punktu (pole "comments")."""
+    cfg = load_config() or {}
+    mnt = None
+    try:
+        if cfg.get("btrfs_mode") == "true":
+            mnt = tempfile.mkdtemp(prefix="orka-kopia-")
+            subprocess.run(["mount", "-o", "subvolid=5", root_info()[0], mnt], check=True)
+            base = os.path.join(mnt, "timeshift-btrfs", "snapshots")
+        else:
+            base = "/timeshift/snapshots"
+        path = os.path.join(base, name, "info.json")
+        with open(path, encoding="utf-8") as f:
+            info = json.load(f)
+        info["comments"] = text
+        with open(path, "w", encoding="utf-8") as f:
+            json.dump(info, f, indent=2)
+    except (OSError, ValueError, subprocess.CalledProcessError) as e:
+        die("Nie udało się zmienić opisu: %s" % e)
+    finally:
+        if mnt:
+            subprocess.run(["umount", mnt])
+            os.rmdir(mnt)
+
+
+KINDS = ("daily", "weekly", "monthly", "boot")
+
+
+def schedule_state(cfg):
+    cfg = cfg or {}
+    return {k: {"on": cfg.get("schedule_" + k) == "true",
+                "count": int(cfg.get("count_" + k, "5") or 5)} for k in KINDS}
+
+
+def refresh_cron():
+    """Timeshift przepisuje swoje zadania cron przy każdym uruchomieniu jako root,
+    więc po zmianie harmonogramu wystarczy go odpalić (--list jest szybkie)."""
+    subprocess.run(["timeshift", "--list", "--scripted"], capture_output=True)
+
+
+def disk_state():
+    try:
+        source = root_info()[0]
+        du = shutil.disk_usage("/")
+        return {"device": source, "free": du.free, "total": du.total}
+    except (OSError, SystemExit):
+        return {"device": "", "free": 0, "total": 0}
+
+
+def check_name(name):
+    if not NAME_RE.match(name or ""):
+        die("Zła nazwa punktu: %r" % name)
+
+
+def newest_age():
+    names = [s["name"] for s in snapshots()]
+    if not names:
+        return None
+    newest = max(names)
+    t = time.mktime(time.strptime(newest, "%Y-%m-%d_%H-%M-%S"))
+    return time.time() - t
+
+
+def main():
+    if os.geteuid() != 0:
+        die("Uruchom przez pkexec")
+    cmd = sys.argv[1] if len(sys.argv) > 1 else ""
+    arg = sys.argv[2] if len(sys.argv) > 2 else ""
+
+    if cmd == "setup":
+        setup()
+    elif cmd == "list":
+        cfg = load_config()
+        print(json.dumps({
+            "configured": bool(cfg and cfg.get("backup_device_uuid")),
+            "daily": bool(cfg and cfg.get("schedule_daily") == "true"),
+            "schedule": schedule_state(cfg),
+            "auto": os.path.exists(AUTO_FLAG),
+            "disk": disk_state(),
+            "snapshots": snapshots() if cfg else [],
+        }))
+    elif cmd == "create":
+        comment = (arg or "Kopia zapasowa OrkaLinux")[:120]
+        sys.exit(timeshift_live("--create", "--comments", comment))
+    elif cmd == "delete":
+        check_name(arg)
+        sys.exit(timeshift("--delete", "--snapshot", arg).returncode)
+    elif cmd == "comment":
+        check_name(arg)
+        set_comment(arg, (sys.argv[3] if len(sys.argv) > 3 else "")[:120])
+    elif cmd == "restore":
+        check_name(arg)
+        source = root_info()[0]
+        sys.exit(timeshift_live("--restore", "--snapshot", arg, "--target-device", source,
+                                "--skip-grub", "--yes"))
+    elif cmd == "restore-boot":
+        check_name(arg)
+        oneshot = None
+        if os.path.exists("/boot/grub/grub.cfg"):
+            with open("/boot/grub/grub.cfg", encoding="utf-8", errors="replace") as f:
+                if "'OrkaLinux Recovery'" in f.read():
+                    oneshot = ["grub-reboot", "OrkaLinux Recovery"]
+        if not oneshot and os.path.exists("/boot/efi/loader/entries/orkalinux-recovery.conf"):
+            oneshot = ["bootctl", "set-oneshot", "orkalinux-recovery.conf"]
+        if not oneshot:
+            source = root_info()[0]
+            sys.exit(timeshift_live("--restore", "--snapshot", arg, "--target-device", source,
+                                    "--skip-grub", "--yes"))
+        os.makedirs(os.path.dirname(PENDING), exist_ok=True)
+        with open(PENDING, "w") as f:
+            f.write(arg + "\n")
+        if subprocess.run(oneshot).returncode != 0:
+            os.remove(PENDING)
+            die("Nie udało się ustawić startu do Recovery")
+        print("REBOOT")
+        sys.stdout.flush()
+        subprocess.run(["systemctl", "reboot"])
+    elif cmd in ("daily", "schedule", "keep"):
+        cfg = load_config()
+        if not cfg:
+            die("Najpierw włącz punkty przywracania")
+        if cmd == "daily":
+            kind, value = "daily", arg
+        else:
+            kind, value = arg, (sys.argv[3] if len(sys.argv) > 3 else "")
+        if kind not in KINDS:
+            die("Zły rodzaj: %r" % kind)
+        if cmd == "keep":
+            if not value.isdigit() or not 1 <= int(value) <= 20:
+                die("Zła liczba: %r" % value)
+            cfg["count_" + kind] = value
+        else:
+            cfg["schedule_" + kind] = "true" if value == "on" else "false"
+        save_config(cfg)
+        refresh_cron()
+    elif cmd == "auto":
+        if arg == "on":
+            os.makedirs(os.path.dirname(AUTO_FLAG), exist_ok=True)
+            open(AUTO_FLAG, "w").close()
+        elif os.path.exists(AUTO_FLAG):
+            os.remove(AUTO_FLAG)
+    elif cmd == "autosnap":
+        if not os.path.exists(AUTO_FLAG) or not load_config() or os.path.exists("/run/live/medium"):
+            return
+        age = newest_age()
+        if age is not None and age < 24 * 3600:
+            return
+        print("Kopia zapasowa OrkaLinux: punkt przywracania przed aktualizacją...")
+        timeshift("--create", "--comments", "Before updates")
+    else:
+        die(__doc__ or "?")
+
+
+if __name__ == "__main__":
+    main()

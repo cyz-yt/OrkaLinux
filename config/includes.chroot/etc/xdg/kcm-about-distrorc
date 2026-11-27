@@ -1,3 +1,4 @@
 [General]
 LogoPath=/usr/share/pixmaps/orkalinux/orkalinux-logo.png
 Website=@ORKA_URL@
+Version=@ORKA_VERSION@

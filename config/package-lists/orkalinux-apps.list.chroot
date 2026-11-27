@@ -1,5 +1,3 @@
-firefox-esr
-firefox-esr-l10n-pl
 vlc
 libreoffice
 libreoffice-qt6
@@ -7,6 +5,10 @@ libreoffice-l10n-pl
 libreoffice-help-pl
 hunspell-pl
 fastfetch
+
+kitty
+fonts-jetbrains-mono
+starship
 
 konsole
 dolphin
@@ -22,11 +24,37 @@ plasma-systemmonitor
 ffmpegthumbs
 kdegraphics-thumbnailers
 
+cups
+print-manager
+ipp-usb
+printer-driver-gutenprint
+hplip
+
 task-polish
 locales
 sudo
 curl
+gnupg
+ca-certificates
 
 python3-gi
 python3-gi-cairo
 gir1.2-gtk-3.0
+
+timeshift
+libkf6config-bin
+
+open-vm-tools
+open-vm-tools-desktop
+spice-vdagent
+qemu-guest-agent
+
+systemd-zram-generator
+
+kdeconnect
+
+ufw
+unattended-upgrades
+
+whiptail
+console-setup

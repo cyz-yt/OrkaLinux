@@ -1,0 +1,36 @@
+[
+  {"category": "games", "apps": [
+    {"id": "com.valvesoftware.Steam", "name": "Steam", "en": "Game store and library", "pl": "Sklep i biblioteka gier", "de": "Spieleshop und Bibliothek", "fr": "Boutique et bibliothèque de jeux"},
+    {"id": "com.heroicgameslauncher.hgl", "name": "Heroic", "en": "Epic, GOG and Amazon games", "pl": "Gry z Epic, GOG i Amazon", "de": "Spiele von Epic, GOG und Amazon", "fr": "Jeux Epic, GOG et Amazon"},
+    {"id": "net.lutris.Lutris", "name": "Lutris", "en": "All your games in one place", "pl": "Wszystkie gry w jednym miejscu", "de": "Alle Spiele an einem Ort", "fr": "Tous tes jeux au même endroit"},
+    {"id": "org.prismlauncher.PrismLauncher", "name": "Prism Launcher", "en": "Minecraft with mods", "pl": "Minecraft z modami", "de": "Minecraft mit Mods", "fr": "Minecraft avec des mods"},
+    {"id": "net.davidotek.pupgui2", "name": "ProtonUp-Qt", "en": "Newer Proton for Steam", "pl": "Nowszy Proton do Steama", "de": "Neueres Proton für Steam", "fr": "Proton plus récent pour Steam"},
+    {"id": "com.usebottles.bottles", "name": "Bottles", "en": "Run Windows software", "pl": "Programy z Windowsa", "de": "Windows-Programme ausführen", "fr": "Logiciels Windows"}
+  ]},
+  {"category": "create", "apps": [
+    {"id": "com.obsproject.Studio", "name": "OBS Studio", "en": "Recording and streaming", "pl": "Nagrywanie i streamy", "de": "Aufnahme und Streaming", "fr": "Enregistrement et streaming"},
+    {"id": "org.kde.kdenlive", "name": "Kdenlive", "en": "Video editing", "pl": "Montaż wideo", "de": "Videoschnitt", "fr": "Montage vidéo"},
+    {"id": "org.gimp.GIMP", "name": "GIMP", "en": "Photo editing", "pl": "Edycja zdjęć", "de": "Bildbearbeitung", "fr": "Retouche photo"},
+    {"id": "org.kde.krita", "name": "Krita", "en": "Drawing and painting", "pl": "Rysowanie i malowanie", "de": "Zeichnen und Malen", "fr": "Dessin et peinture"},
+    {"id": "org.inkscape.Inkscape", "name": "Inkscape", "en": "Vector graphics", "pl": "Grafika wektorowa", "de": "Vektorgrafik", "fr": "Dessin vectoriel"},
+    {"id": "org.audacityteam.Audacity", "name": "Audacity", "en": "Audio editing", "pl": "Edycja dźwięku", "de": "Audiobearbeitung", "fr": "Montage audio"},
+    {"id": "org.blender.Blender", "name": "Blender", "en": "3D and animation", "pl": "Grafika 3D i animacja", "de": "3D und Animation", "fr": "3D et animation"}
+  ]},
+  {"category": "internet", "apps": [
+    {"id": "com.spotify.Client", "name": "Spotify", "en": "Music and podcasts", "pl": "Muzyka i podcasty", "de": "Musik und Podcasts", "fr": "Musique et podcasts"},
+    {"id": "org.telegram.desktop", "name": "Telegram", "en": "Messenger", "pl": "Komunikator", "de": "Messenger", "fr": "Messagerie"},
+    {"id": "org.signal.Signal", "name": "Signal", "en": "Encrypted messenger", "pl": "Szyfrowany komunikator", "de": "Verschlüsselter Messenger", "fr": "Messagerie chiffrée"},
+    {"id": "org.mozilla.Thunderbird", "name": "Thunderbird", "en": "E-mail", "pl": "Poczta e-mail", "de": "E-Mail", "fr": "Courriel"},
+    {"id": "org.chromium.Chromium", "name": "Chromium", "en": "A second browser", "pl": "Druga przeglądarka", "de": "Ein zweiter Browser", "fr": "Un second navigateur"},
+    {"id": "org.qbittorrent.qBittorrent", "name": "qBittorrent", "en": "Torrent downloads", "pl": "Pobieranie torrentów", "de": "Torrent-Downloads", "fr": "Téléchargements torrent"}
+  ]},
+  {"category": "dev", "apps": [
+    {"id": "com.visualstudio.code", "name": "VS Code", "en": "Code editor", "pl": "Edytor kodu", "de": "Code-Editor", "fr": "Éditeur de code"},
+    {"id": "md.obsidian.Obsidian", "name": "Obsidian", "en": "Notes", "pl": "Notatki", "de": "Notizen", "fr": "Notes"}
+  ]},
+  {"category": "ai", "apps": [
+    {"id": "claude-desktop", "script": "claude-desktop.sh", "root": true, "check": "/usr/bin/claude-desktop", "name": "Claude", "en": "Chat with Claude from Anthropic", "pl": "Rozmowy z Claude od Anthropic", "de": "Chatten mit Claude von Anthropic", "fr": "Discute avec Claude d'Anthropic"},
+    {"id": "claude-code", "script": "claude-code.sh", "root": false, "check": "~/.local/bin/claude", "name": "Claude Code", "en": "AI coding helper in the terminal", "pl": "Asystent AI do kodu w terminalu", "de": "KI-Codehelfer im Terminal", "fr": "Assistant IA pour coder dans le terminal"},
+    {"id": "codex", "script": "codex.sh", "root": false, "check": "~/.local/bin/codex", "name": "Codex", "en": "OpenAI coding agent in the terminal", "pl": "Agent do kodu od OpenAI w terminalu", "de": "Code-Agent von OpenAI im Terminal", "fr": "Agent de code d'OpenAI dans le terminal"}
+  ]}
+]

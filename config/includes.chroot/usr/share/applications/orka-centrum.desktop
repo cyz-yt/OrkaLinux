@@ -1,0 +1,16 @@
+[Desktop Entry]
+Type=Application
+Name=OrkaLinux Center
+Name[pl]=Centrum OrkaLinux
+Name[de]=OrkaLinux Zentrum
+Name[fr]=Centre OrkaLinux
+Comment=System info, drivers, kernel and cleanup
+Comment[pl]=Informacje o systemie, sterowniki, jądro i sprzątanie
+Comment[de]=Systeminfo, Treiber, Kernel und Aufräumen
+Comment[fr]=Infos système, pilotes, noyau et nettoyage
+Exec=/usr/share/orka-centrum/orka-centrum.py
+Icon=orka-centrum
+StartupWMClass=orka-centrum
+Terminal=false
+Categories=Settings;System;
+Keywords=system;drivers;nvidia;kernel;cleanup;

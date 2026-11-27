@@ -1,0 +1,47 @@
+#!/bin/sh
+set -e
+export DEBIAN_FRONTEND=noninteractive
+
+KEY=/etc/apt/keyrings/packages.mozilla.org.asc
+if [ ! -s "$KEY" ]; then
+	echo "Brak $KEY – powinien go pobrać build.sh" >&2
+	exit 1
+fi
+chmod 644 "$KEY"
+
+cat > /etc/apt/sources.list.d/mozilla.sources <<EOF
+Types: deb
+URIs: https://packages.mozilla.org/apt
+Suites: mozilla
+Components: main
+Signed-By: $KEY
+EOF
+
+cat > /etc/apt/preferences.d/mozilla <<'EOF'
+Package: *
+Pin: origin packages.mozilla.org
+Pin-Priority: 1000
+EOF
+
+apt-get update
+apt-get install -y firefox firefox-l10n-pl
+
+ini="$(dpkg -L firefox | grep -m1 '/application\.ini$' || true)"
+ffdir="$(dirname "${ini:-/usr/lib/firefox/application.ini}")"
+mkdir -p "$ffdir/defaults/pref"
+cat > "$ffdir/defaults/pref/orkalinux.js" <<'EOF'
+pref("intl.locale.requested", "");
+EOF
+
+if dpkg -s firefox-esr >/dev/null 2>&1; then
+	dpkg --purge firefox-esr-l10n-pl firefox-esr \
+		|| echo "UWAGA: nie udało się usunąć firefox-esr (coś od niego zależy)" >&2
+fi
+
+apt-get purge -y konqueror konqueror-data konqueror-doc || true
+cat > /etc/apt/preferences.d/orkalinux-no-konqueror <<'PIN'
+Package: konqueror konqueror-data konqueror-doc
+Pin: release *
+Pin-Priority: -1
+PIN
+! dpkg -s konqueror >/dev/null 2>&1

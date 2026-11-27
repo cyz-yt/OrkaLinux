@@ -1,0 +1,1 @@
+DPkg::Pre-Invoke { "if [ -x /usr/sbin/orka-kopia-helper ]; then /usr/sbin/orka-kopia-helper autosnap || true; fi"; };

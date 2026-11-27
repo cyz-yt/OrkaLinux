@@ -1,0 +1,112 @@
+#!/usr/bin/env python3
+import configparser
+import os
+import re
+import subprocess
+import sys
+
+SDDM_CONF = "/etc/sddm.conf.d/orkalinux.conf"
+LOGIN = ("breeze", "orkalinux-glass", "orkalinux-side")
+BOOT = ("orkalinux", "orkalinux-dots", "text")
+TEXT_FLAGS = ["plymouth.enable=0"]
+SPLASH_FLAGS = ["quiet", "splash"]
+DOTS = {"micro": 5, "small": 8, "medium": 12, "large": 18, "giga": 28}
+DOTS_SCRIPT = "/usr/share/plymouth/themes/orkalinux-dots/orkalinux-dots.script"
+
+
+def die(msg, code=1):
+    print(msg, file=sys.stderr)
+    sys.exit(code)
+
+
+def set_login(theme):
+    config = configparser.ConfigParser(interpolation=None)
+    config.optionxform = str
+    config.read(SDDM_CONF, encoding="utf-8")
+    if not config.has_section("Theme"):
+        config.add_section("Theme")
+    config["Theme"]["Current"] = theme
+    os.makedirs(os.path.dirname(SDDM_CONF), exist_ok=True)
+    with open(SDDM_CONF, "w", encoding="utf-8") as f:
+        config.write(f, space_around_delimiters=False)
+    main = configparser.ConfigParser(interpolation=None)
+    main.optionxform = str
+    try:
+        main.read("/etc/sddm.conf", encoding="utf-8")
+    except configparser.Error:
+        return
+    if main.has_option("Theme", "Current"):
+        main["Theme"]["Current"] = theme
+        with open("/etc/sddm.conf", "w", encoding="utf-8") as f:
+            main.write(f, space_around_delimiters=False)
+
+
+def edit_flags(words, text):
+    words = [w for w in words if w not in TEXT_FLAGS + SPLASH_FLAGS]
+    return words + (TEXT_FLAGS if text else SPLASH_FLAGS)
+
+
+def set_text_boot(text):
+    grub = "/etc/default/grub"
+    if os.path.exists(grub):
+        with open(grub, encoding="utf-8") as f:
+            s = f.read()
+        m = re.search(r'(?m)^GRUB_CMDLINE_LINUX_DEFAULT="([^"]*)"', s)
+        if m:
+            new = " ".join(edit_flags(m.group(1).split(), text))
+            s = s[:m.start(1)] + new + s[m.end(1):]
+        else:
+            s += '\nGRUB_CMDLINE_LINUX_DEFAULT="%s"\n' % " ".join(edit_flags([], text))
+        with open(grub, "w", encoding="utf-8") as f:
+            f.write(s)
+        if os.path.isdir("/boot/grub"):
+            subprocess.run(["update-grub"])
+    cmd = "/etc/kernel/cmdline"
+    if os.path.exists(cmd) and os.path.isdir("/boot/efi/loader"):
+        with open(cmd, encoding="utf-8") as f:
+            words = f.read().split()
+        with open(cmd, "w", encoding="utf-8") as f:
+            f.write(" ".join(edit_flags(words, text)) + "\n")
+        for kernel in sorted(os.listdir("/boot")):
+            if kernel.startswith("vmlinuz-"):
+                ver = kernel[len("vmlinuz-"):]
+                args = ["kernel-install", "add", ver, "/boot/" + kernel]
+                if os.path.exists("/boot/initrd.img-" + ver):
+                    args.append("/boot/initrd.img-" + ver)
+                subprocess.run(args)
+
+
+def set_dots(size):
+    with open(DOTS_SCRIPT, encoding="utf-8") as f:
+        s = f.read()
+    s, n = re.subn(r"(?m)^dot_size = \d+;", "dot_size = %d;" % DOTS[size], s)
+    if n != 1:
+        die("Nie znalazłem dot_size w " + DOTS_SCRIPT)
+    with open(DOTS_SCRIPT, "w", encoding="utf-8") as f:
+        f.write(s)
+    code = subprocess.run(["plymouth-set-default-theme", "-R", "orkalinux-dots"]).returncode
+    set_text_boot(False)
+    sys.exit(code)
+
+
+def main():
+    if os.geteuid() != 0:
+        die("Uruchom przez pkexec albo sudo")
+    cmd = sys.argv[1] if len(sys.argv) > 1 else ""
+    arg = sys.argv[2] if len(sys.argv) > 2 else ""
+    if cmd == "login" and arg in LOGIN:
+        set_login(arg)
+    elif cmd == "boot" and arg == "text":
+        set_text_boot(True)
+    elif cmd == "boot" and arg in BOOT:
+        code = subprocess.run(["plymouth-set-default-theme", "-R", arg]).returncode
+        set_text_boot(False)
+        sys.exit(code)
+    elif cmd == "dots" and arg in DOTS:
+        set_dots(arg)
+    else:
+        die("Użycie: orka-wyglad-helper login|boot MOTYW albo dots ROZMIAR")
+
+
+if __name__ == "__main__":
+    main()

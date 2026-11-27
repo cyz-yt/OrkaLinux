@@ -1,0 +1,24 @@
+label live-@FLAVOUR@
+	menu label ^@ORKA_NAME@ @ORKA_VERSION@ (English)
+	menu default
+	linux @LINUX@
+	initrd @INITRD@
+	append @APPEND_LIVE@
+
+label live-@FLAVOUR@-polski
+	menu label @ORKA_NAME@ @ORKA_VERSION@ (^Polski)
+	linux @LINUX@
+	initrd @INITRD@
+	append @APPEND_LIVE@ locales=pl_PL.UTF-8 keyboard-layouts=pl
+
+label live-@FLAVOUR@-text
+	menu label @ORKA_NAME@ @ORKA_VERSION@ (^text boot / tryb tekstowy)
+	linux @LINUX@
+	initrd @INITRD@
+	append @APPEND_LIVE@ plymouth.enable=0 systemd.show_status=1
+
+label live-@FLAVOUR@-failsafe
+	menu label @ORKA_NAME@ @ORKA_VERSION@ (^safe mode)
+	linux @LINUX@
+	initrd @INITRD@
+	append @APPEND_LIVE_FAILSAFE@

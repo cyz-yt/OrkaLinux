@@ -6,36 +6,67 @@ A Linux distribution built on **Debian 13 (Trixie)** with the **KDE Plasma 6** d
 
 **[Download the latest version](https://github.com/cyz-yt/OrkaLinux/releases/latest)** · [Website](https://cyzs-retroweb.rf.gd/orkalinux.php) · [Discord](https://discord.gg/JkC9P6ebN2) · [YouTube](https://www.youtube.com/@_inc0gnit0)
 
-Current version: **B2 "Riptide"** (beta)
+Current version: **B3 "Undertow"** (beta)
 
 ## What's inside
 
-- **Debian 13 (Trixie)** with Linux 6.12, so it gets Debian's security updates
-- **KDE Plasma 6.3**, Wayland or X11 session
-- **Firefox**, **LibreOffice**, **VLC**, **Discord** and **Fastfetch**
-- KDE apps: Dolphin, Konsole, Kate, Ark, Gwenview, Okular, Spectacle, KCalc, Partition Manager, System Monitor
-- **Discover** with Flatpak, for installing more apps
-- **OrkaLinux Hello**, a welcome app in Polish, English, German and French
-- **Calamares** installer, which works without an internet connection
+- **Debian 13 (Trixie)** with Linux 7.3 from backports, so it gets Debian's security updates
+- **KDE Plasma 6.3**, Wayland or X11 session, a Windows 11 style taskbar, dark and light look
+- **Firefox** (straight from Mozilla), **LibreOffice**, **VLC**, **Discord** (updates itself), **Fastfetch** and the **kitty** terminal
+- KDE apps: Dolphin, Kate, Ark, Gwenview, Okular, Spectacle, KCalc, Partition Manager, System Monitor
+- **Discover** with Flathub, plus **More software** in OrkaLinux Hello - Steam, OBS, GIMP and more in one click
+- Orka apps:
+  - **OrkaLinux Center** - NVIDIA drivers, Linux kernel, cleanup, updates, firewall
+  - **OrkaLinux Appearance** - panel layout, colours, wallpaper, effects, login screen, boot screen
+  - **OrkaLinux Backup** - restore points, made by hand or on a schedule
+- **OrkaLinux Recovery** - a repair mode in the boot menu, like the one on Windows
+- OrkaLinux updates come from its own repository, so fixes arrive without reinstalling
+- **OrkaLinux Hello**, a welcome app in 8 languages
+- **Calamares** installer, which works without an internet connection, with a choice of GRUB or systemd-boot
 - Starts on UEFI computers with **Secure Boot turned on**, and on older BIOS computers
-- Its own look: boot menu, boot splash, login screen, wallpapers
 
-The system language is **Polish** by default. You can change it in System Settings > Region & Language.
+The system is in **English** by default. Pick **OrkaLinux B3 (Polski)** in the boot menu for Polish. The installer lets you set the system language, and Hello, the installer and the Orka apps follow it.
+
+### Privacy and speed
+
+- No telemetry - the system sends nothing about you and there is no account to create
+- Firefox has telemetry and Mozilla studies turned off
+- The firewall (ufw) is on from the first boot
+- Debian security fixes install on their own (you can turn this off in OrkaLinux Center)
+- zram instead of slow swap on disk, so older computers stutter less
+
+### OrkaLinux Recovery
+
+When something breaks, you don't have to reinstall right away. OrkaLinux Recovery is a separate entry in the boot menu and starts even when the desktop won't. It can:
+
+- restore the system from a restore point (files in your home folder stay)
+- repair software after an interrupted update
+- repair startup (GRUB or systemd-boot)
+- free up disk space
+- reset the desktop look
+- remove the NVIDIA driver when it leaves you with a black screen
+- change a password or open a terminal (you can turn this off in OrkaLinux Center)
+
+You can also get there from OrkaLinux Center, and the Restore button in OrkaLinux Backup restarts the computer and restores the system right there.
 
 ## Screenshots
 
 | | |
 |---|---|
-| ![Boot menu](screenshots/02-boot-menu.png) | ![Boot splash](screenshots/03-boot-splash.png) |
-| The boot menu | Starting up |
-| ![Installer](screenshots/04-installer.png) | ![Installer, location step](screenshots/05-installer-location.png) |
-| The Calamares installer | Picking your time zone |
-| ![Login screen](screenshots/06-login.png) | |
-| The login screen | |
+| ![Start menu](screenshots/02-start-menu.png) | ![Boot menu](screenshots/03-boot-menu.png) |
+| The start menu | The boot menu |
+| ![Boot splash](screenshots/04-boot-splash.png) | ![Installer](screenshots/05-installer.png) |
+| Starting up | The installer |
+| ![Installing](screenshots/06-installer-installing.png) | ![Login screen](screenshots/07-login.png) |
+| Installing, with what is going on at the bottom | The login screen |
+| ![OrkaLinux Center](screenshots/08-center.png) | ![OrkaLinux Appearance](screenshots/09-appearance.png) |
+| OrkaLinux Center | OrkaLinux Appearance |
+| ![OrkaLinux Backup](screenshots/10-backup.png) | ![Terminal](screenshots/11-terminal.png) |
+| OrkaLinux Backup | kitty with Fastfetch |
 
 ## Installing
 
-The ISO is about 2.9 GB. GitHub only allows files up to 2 GB, so the download comes in two parts that you join back into one file.
+The ISO is about 3.4 GB. GitHub only allows files up to 2 GB, so the download comes in two parts that you join back into one file.
 
 **1. Download** both parts and `SHA256SUMS.txt` from [Releases](https://github.com/cyz-yt/OrkaLinux/releases/latest).
 
@@ -45,25 +76,25 @@ The ISO is about 2.9 GB. GitHub only allows files up to 2 GB, so the download co
 - Windows, without 7-Zip: open Command Prompt in that folder and run
 
   ```
-  copy /b OrkaLinux-B2-amd64.hybrid.iso.001 + OrkaLinux-B2-amd64.hybrid.iso.002 OrkaLinux-B2-amd64.hybrid.iso
+  copy /b OrkaLinux-B3-amd64.hybrid.iso.001 + OrkaLinux-B3-amd64.hybrid.iso.002 OrkaLinux-B3-amd64.hybrid.iso
   ```
 
 - Linux:
 
   ```
-  cat OrkaLinux-B2-amd64.hybrid.iso.001 OrkaLinux-B2-amd64.hybrid.iso.002 > OrkaLinux-B2-amd64.hybrid.iso
+  cat OrkaLinux-B3-amd64.hybrid.iso.001 OrkaLinux-B3-amd64.hybrid.iso.002 > OrkaLinux-B3-amd64.hybrid.iso
   ```
 
 **3. Check the file.** The SHA-256 must match the one in `SHA256SUMS.txt`.
 
-- Windows (PowerShell): `Get-FileHash OrkaLinux-B2-amd64.hybrid.iso`
+- Windows (PowerShell): `Get-FileHash OrkaLinux-B3-amd64.hybrid.iso`
 - Linux: `sha256sum -c SHA256SUMS.txt --ignore-missing`
 
-**4. Write it to a USB stick** (4 GB or bigger) with [Rufus](https://rufus.ie/), [balenaEtcher](https://etcher.balena.io/) or [Ventoy](https://www.ventoy.net/). If Rufus asks, pick **DD Image** mode.
+**4. Write it to a USB stick** (8 GB or bigger) with [Rufus](https://rufus.ie/), [balenaEtcher](https://etcher.balena.io/) or [Ventoy](https://www.ventoy.net/). If Rufus asks, pick **DD Image** mode.
 
-**5. Boot from the stick** and choose **Live system**. Everything works without touching your disk. When you are ready, double-click **Zainstaluj OrkaLinux** (Install OrkaLinux) on the desktop, or use the same button in OrkaLinux Hello.
+**5. Boot from the stick** and choose **OrkaLinux B3 (English)** or **OrkaLinux B3 (Polski)**. Everything works without touching your disk. When you are ready, double-click **Install OrkaLinux** on the desktop, or use the same button in OrkaLinux Hello.
 
-**Requirements:** a 64-bit PC (x86-64), 4 GB of RAM and 20 GB of disk space for the installed system.
+**Requirements:** a 64-bit PC (x86-64), 4 GB of RAM and 20 GB of disk space (40 GB if you want restore points).
 
 ## Building it yourself
 
@@ -71,11 +102,11 @@ The whole system is described by the files in this repository and built with Deb
 
 ## Beta
 
-OrkaLinux is a beta. If something does not work, tell us on [Discord](https://discord.gg/JkC9P6ebN2).
+OrkaLinux is a beta. If something does not work, tell me on [Discord](https://discord.gg/JkC9P6ebN2).
 
 ## Credits
 
-- [Debian](https://www.debian.org/), [KDE](https://kde.org/), [Calamares](https://calamares.io/) and [live-build](https://salsa.debian.org/live-team/live-build)
+- [Debian](https://www.debian.org/), [KDE](https://kde.org/), [Calamares](https://calamares.io/), [Timeshift](https://github.com/linuxmint/timeshift) and [live-build](https://salsa.debian.org/live-team/live-build)
 - Wallpapers by Caterina Berger and mily_
 
 ## More from the same author

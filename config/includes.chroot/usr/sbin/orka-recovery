@@ -1,0 +1,588 @@
+#!/bin/bash
+export TERM=linux
+export PATH=/usr/sbin:/usr/bin:/sbin:/bin
+LOG=/var/log/orka-recovery.log
+HELPER=/usr/sbin/orka-kopia-helper
+CONF=/etc/orkalinux/recovery.conf
+admin_allowed() { ! grep -qx 'ALLOW_ADMIN=no' "$CONF" 2>/dev/null; }
+
+dmesg -n 1 2>/dev/null
+
+export NEWT_COLORS='
+root=white,blue
+roottext=white,blue
+window=white,black
+border=brightblue,black
+shadow=black,black
+title=brightcyan,black
+textbox=white,black
+button=white,blue
+actbutton=blue,white
+compactbutton=white,black
+listbox=white,black
+actlistbox=white,blue
+actsellistbox=white,blue
+sellistbox=white,black
+entry=white,blue
+disentry=gray,black
+emptyscale=,black
+fullscale=,brightblue
+'
+
+[ -f /boot/grub/grubenv ] && grub-editenv /boot/grub/grubenv unset next_entry 2>/dev/null
+
+L=en
+if [ -r /etc/default/locale ]; then
+	lang="$(sed -n 's/^LANG=//p' /etc/default/locale | tr -d '"')"
+	case "$lang" in pl*) L=pl ;; de*) L=de ;; fr*) L=fr ;; es*) L=es ;; it*) L=it ;; pt*) L=pt ;; uk*) L=uk ;; esac
+fi
+export LANG="${lang:-C.UTF-8}"
+
+if [ "$L" = uk ] && command -v setfont >/dev/null; then
+	for f in CyrSlav-Terminus32x16 CyrSlav-Terminus28x14 CyrSlav-Terminus16 Uni2-Terminus16; do
+		setfont "$f" 2>/dev/null && break
+	done
+fi
+
+T_back="OrkaLinux Recovery  -  by _inc0gnit0"
+T_menu="What do you want to do? Your files in the home folder are not touched unless you pick something that says so."
+T_restore="Restore the system from a restore point"
+T_packages="Repair software (unfinished updates, broken packages)"
+T_boot="Repair startup (bootloader and initramfs)"
+T_space="Free up disk space"
+T_desktop="Reset desktop settings for a user"
+T_nvidia="Remove the NVIDIA driver (black screen after installing it)"
+T_password="Change a user's password"
+T_shell="Terminal (advanced)"
+T_continue="Start OrkaLinux normally"
+T_reboot="Restart"
+T_poweroff="Shut down"
+T_ok="OK"; T_cancel="Back"; T_yes="Yes"; T_no="No"
+T_no_points="There are no restore points. Turn them on in OrkaLinux Backup when the system works again."
+T_pick_point="Pick a restore point:"
+T_restore_q="Restore the system to %s?\n\nApps, settings and drivers go back to how they were then. Files in the home folder stay. The computer restarts at the end."
+T_restoring="Restoring the system... Don't turn off the computer, this can take several minutes."
+T_elapsed="Time elapsed:"
+T_restored="Done! The computer will now restart."
+T_failed="It didn't work. Details are in /var/log/orka-recovery.log - send them to me on Discord."
+T_net="Connecting to the internet..."
+T_no_net="No internet connection. Repairs that need to download something may fail (for Wi-Fi use the Terminal and nmtui)."
+T_enter="Press Enter to go back to the menu."
+T_done="Done."
+T_pick_user="Pick a user:"
+T_no_users="No users found."
+T_desktop_q="Reset the panel, colours, shortcuts and window settings for %s?\n\nThe old settings are moved to ~/.config/orka-recovery-backup, nothing is deleted. Files stay."
+T_desktop_done="Done. Old settings are in %s."
+T_nvidia_q="Remove the NVIDIA driver? The system goes back to the open driver (nouveau). You can install NVIDIA again from OrkaLinux Center."
+T_shell_hint="Type exit to go back to the Recovery menu."
+T_space_before="Free space before:"
+T_space_after="Free space now:"
+T_working="Working on it, the details are shown below."
+
+case "$L" in
+pl)
+T_menu="Co chcesz zrobić? Twoje pliki w katalogu domowym zostają nietknięte, chyba że wybierzesz coś, co mówi inaczej."
+T_restore="Przywróć system z punktu przywracania"
+T_packages="Napraw programy (przerwane aktualizacje, zepsute paczki)"
+T_boot="Napraw uruchamianie (bootloader i initramfs)"
+T_space="Zwolnij miejsce na dysku"
+T_desktop="Przywróć domyślne ustawienia pulpitu użytkownika"
+T_nvidia="Usuń sterownik NVIDIA (czarny ekran po instalacji)"
+T_password="Zmień hasło użytkownika"
+T_shell="Terminal (dla zaawansowanych)"
+T_continue="Uruchom OrkaLinux normalnie"
+T_reboot="Uruchom ponownie"
+T_poweroff="Wyłącz komputer"
+T_ok="OK"; T_cancel="Wstecz"; T_yes="Tak"; T_no="Nie"
+T_no_points="Nie ma żadnego punktu przywracania. Włącz je w Kopii zapasowej OrkaLinux, jak system znowu będzie działał."
+T_pick_point="Wybierz punkt przywracania:"
+T_restore_q="Przywrócić system do stanu z %s?\n\nProgramy, ustawienia i sterowniki wrócą do tamtego stanu. Pliki w katalogu domowym zostają. Na koniec komputer się zrestartuje."
+T_restoring="Przywracam system... Nie wyłączaj komputera, to może potrwać kilka minut."
+T_elapsed="Minęło:"
+T_restored="Gotowe! Komputer się teraz zrestartuje."
+T_failed="Nie udało się. Szczegóły są w /var/log/orka-recovery.log – wyślij mi je na Discordzie."
+T_net="Łączę z internetem..."
+T_no_net="Brak internetu. Naprawy, które muszą coś pobrać, mogą się nie udać (Wi-Fi: Terminal i nmtui)."
+T_enter="Naciśnij Enter, żeby wrócić do menu."
+T_done="Gotowe."
+T_pick_user="Wybierz użytkownika:"
+T_no_users="Nie znalazłem żadnego użytkownika."
+T_desktop_q="Przywrócić domyślny panel, kolory, skróty i ustawienia okien dla %s?\n\nStare ustawienia trafią do ~/.config/orka-recovery-backup, nic nie jest usuwane. Pliki zostają."
+T_desktop_done="Gotowe. Stare ustawienia są w %s."
+T_nvidia_q="Usunąć sterownik NVIDIA? System wróci do otwartego sterownika (nouveau). NVIDIA zainstalujesz znowu z Centrum OrkaLinux."
+T_shell_hint="Wpisz exit, żeby wrócić do menu Recovery."
+T_space_before="Wolne miejsce przed:"
+T_space_after="Wolne miejsce teraz:"
+T_working="Pracuję, szczegóły są niżej."
+;;
+de)
+T_menu="Was möchtest du tun? Deine Dateien im Home-Ordner bleiben unberührt, außer du wählst etwas, das es ausdrücklich sagt."
+T_restore="System aus einem Wiederherstellungspunkt wiederherstellen"
+T_packages="Software reparieren (abgebrochene Updates, kaputte Pakete)"
+T_boot="Start reparieren (Bootloader und initramfs)"
+T_space="Speicherplatz freigeben"
+T_desktop="Desktop-Einstellungen eines Benutzers zurücksetzen"
+T_nvidia="NVIDIA-Treiber entfernen (schwarzer Bildschirm nach der Installation)"
+T_password="Passwort eines Benutzers ändern"
+T_shell="Terminal (für Fortgeschrittene)"
+T_continue="OrkaLinux normal starten"
+T_reboot="Neu starten"
+T_poweroff="Ausschalten"
+T_ok="OK"; T_cancel="Zurück"; T_yes="Ja"; T_no="Nein"
+T_no_points="Es gibt keine Wiederherstellungspunkte. Schalte sie in OrkaLinux Sicherung ein, wenn das System wieder läuft."
+T_pick_point="Wähle einen Wiederherstellungspunkt:"
+T_restore_q="System auf den Stand vom %s zurücksetzen?\n\nProgramme, Einstellungen und Treiber kehren zu diesem Stand zurück. Dateien im Home-Ordner bleiben. Am Ende startet der Computer neu."
+T_restoring="Stelle das System wieder her... Schalte den Computer nicht aus, das kann einige Minuten dauern."
+T_elapsed="Vergangen:"
+T_restored="Fertig! Der Computer startet jetzt neu."
+T_failed="Das hat nicht geklappt. Details stehen in /var/log/orka-recovery.log - schick sie mir auf Discord."
+T_net="Verbinde mit dem Internet..."
+T_no_net="Keine Internetverbindung. Reparaturen, die etwas herunterladen, können fehlschlagen (WLAN: Terminal und nmtui)."
+T_enter="Drücke Enter, um zum Menü zurückzukehren."
+T_done="Fertig."
+T_pick_user="Wähle einen Benutzer:"
+T_no_users="Keine Benutzer gefunden."
+T_desktop_q="Leiste, Farben, Tastenkürzel und Fenstereinstellungen für %s zurücksetzen?\n\nDie alten Einstellungen kommen nach ~/.config/orka-recovery-backup, gelöscht wird nichts. Dateien bleiben."
+T_desktop_done="Fertig. Die alten Einstellungen liegen in %s."
+T_nvidia_q="NVIDIA-Treiber entfernen? Das System nutzt dann wieder den freien Treiber (nouveau). NVIDIA kannst du später wieder im OrkaLinux Center installieren."
+T_shell_hint="Gib exit ein, um zum Recovery-Menü zurückzukehren."
+T_space_before="Freier Speicher vorher:"
+T_space_after="Freier Speicher jetzt:"
+T_working="Läuft, Details stehen unten."
+;;
+fr)
+T_menu="Que veux-tu faire ? Tes fichiers dans le dossier personnel ne sont pas touchés, sauf si tu choisis une option qui le dit."
+T_restore="Restaurer le système depuis un point de restauration"
+T_packages="Réparer les logiciels (mises à jour interrompues, paquets cassés)"
+T_boot="Réparer le démarrage (chargeur et initramfs)"
+T_space="Libérer de l'espace disque"
+T_desktop="Réinitialiser les réglages du bureau d'un utilisateur"
+T_nvidia="Supprimer le pilote NVIDIA (écran noir après l'installation)"
+T_password="Changer le mot de passe d'un utilisateur"
+T_shell="Terminal (avancé)"
+T_continue="Démarrer OrkaLinux normalement"
+T_reboot="Redémarrer"
+T_poweroff="Éteindre"
+T_ok="OK"; T_cancel="Retour"; T_yes="Oui"; T_no="Non"
+T_no_points="Il n'y a aucun point de restauration. Active-les dans Sauvegarde OrkaLinux quand le système remarchera."
+T_pick_point="Choisis un point de restauration :"
+T_restore_q="Restaurer le système à l'état du %s ?\n\nApplis, réglages et pilotes reviennent à cet état. Les fichiers du dossier personnel restent. L'ordinateur redémarre à la fin."
+T_restoring="Restauration du système... N'éteins pas l'ordinateur, cela peut prendre plusieurs minutes."
+T_elapsed="Temps écoulé :"
+T_restored="Terminé ! L'ordinateur va redémarrer."
+T_failed="Ça n'a pas marché. Les détails sont dans /var/log/orka-recovery.log - envoie-les-moi sur Discord."
+T_net="Connexion à Internet..."
+T_no_net="Pas de connexion Internet. Les réparations qui téléchargent quelque chose peuvent échouer (Wi-Fi : Terminal et nmtui)."
+T_enter="Appuie sur Entrée pour revenir au menu."
+T_done="Terminé."
+T_pick_user="Choisis un utilisateur :"
+T_no_users="Aucun utilisateur trouvé."
+T_desktop_q="Réinitialiser le panneau, les couleurs, les raccourcis et les réglages des fenêtres pour %s ?\n\nLes anciens réglages vont dans ~/.config/orka-recovery-backup, rien n'est supprimé. Les fichiers restent."
+T_desktop_done="Terminé. Les anciens réglages sont dans %s."
+T_nvidia_q="Supprimer le pilote NVIDIA ? Le système revient au pilote libre (nouveau). Tu pourras réinstaller NVIDIA depuis le Centre OrkaLinux."
+T_shell_hint="Tape exit pour revenir au menu Recovery."
+T_space_before="Espace libre avant :"
+T_space_after="Espace libre maintenant :"
+T_working="En cours, les détails sont affichés ci-dessous."
+;;
+es)
+T_menu="¿Qué quieres hacer? Tus archivos de la carpeta personal no se tocan, salvo que elijas algo que diga lo contrario."
+T_restore="Restaurar el sistema desde un punto de restauración"
+T_packages="Reparar programas (actualizaciones a medias, paquetes rotos)"
+T_boot="Reparar el arranque (gestor de arranque e initramfs)"
+T_space="Liberar espacio en el disco"
+T_desktop="Restablecer el escritorio de un usuario"
+T_nvidia="Quitar el controlador NVIDIA (pantalla negra tras instalarlo)"
+T_password="Cambiar la contraseña de un usuario"
+T_shell="Terminal (avanzado)"
+T_continue="Iniciar OrkaLinux normalmente"
+T_reboot="Reiniciar"
+T_poweroff="Apagar"
+T_ok="Aceptar"; T_cancel="Atrás"; T_yes="Sí"; T_no="No"
+T_no_points="No hay puntos de restauración. Actívalos en Copia de seguridad OrkaLinux cuando el sistema vuelva a funcionar."
+T_pick_point="Elige un punto de restauración:"
+T_restore_q="¿Restaurar el sistema al estado del %s?\n\nLas aplicaciones, los ajustes y los controladores vuelven a ese estado. Los archivos de la carpeta personal se quedan. Al final el ordenador se reinicia."
+T_restoring="Restaurando el sistema... No apagues el ordenador, puede tardar varios minutos."
+T_elapsed="Tiempo transcurrido:"
+T_restored="¡Listo! El ordenador se reiniciará ahora."
+T_failed="No ha funcionado. Los detalles están en /var/log/orka-recovery.log - mándamelos por Discord."
+T_net="Conectando a Internet..."
+T_no_net="Sin conexión a Internet. Las reparaciones que descargan algo pueden fallar (para Wi-Fi usa el Terminal y nmtui)."
+T_enter="Pulsa Intro para volver al menú."
+T_done="Listo."
+T_pick_user="Elige un usuario:"
+T_no_users="No se encontraron usuarios."
+T_desktop_q="¿Restablecer el panel, los colores, los atajos y los ajustes de ventanas de %s?\n\nLos ajustes antiguos se mueven a ~/.config/orka-recovery-backup, no se borra nada. Los archivos se quedan."
+T_desktop_done="Listo. Los ajustes antiguos están en %s."
+T_nvidia_q="¿Quitar el controlador NVIDIA? El sistema vuelve al controlador libre (nouveau). Puedes volver a instalar NVIDIA desde el Centro OrkaLinux."
+T_shell_hint="Escribe exit para volver al menú de Recovery."
+T_space_before="Espacio libre antes:"
+T_space_after="Espacio libre ahora:"
+T_working="Trabajando, los detalles se muestran abajo."
+;;
+it)
+T_menu="Cosa vuoi fare? I tuoi file nella cartella home non vengono toccati, a meno che tu non scelga qualcosa che dice il contrario."
+T_restore="Ripristina il sistema da un punto di ripristino"
+T_packages="Ripara i programmi (aggiornamenti interrotti, pacchetti rotti)"
+T_boot="Ripara l'avvio (bootloader e initramfs)"
+T_space="Libera spazio sul disco"
+T_desktop="Ripristina il desktop di un utente"
+T_nvidia="Rimuovi il driver NVIDIA (schermo nero dopo l'installazione)"
+T_password="Cambia la password di un utente"
+T_shell="Terminale (avanzato)"
+T_continue="Avvia OrkaLinux normalmente"
+T_reboot="Riavvia"
+T_poweroff="Spegni"
+T_ok="OK"; T_cancel="Indietro"; T_yes="Sì"; T_no="No"
+T_no_points="Non ci sono punti di ripristino. Attivali in Backup di OrkaLinux quando il sistema funziona di nuovo."
+T_pick_point="Scegli un punto di ripristino:"
+T_restore_q="Ripristinare il sistema allo stato del %s?\n\nApp, impostazioni e driver tornano a quello stato. I file nella cartella home restano. Alla fine il computer si riavvia."
+T_restoring="Ripristino del sistema... Non spegnere il computer, può richiedere alcuni minuti."
+T_elapsed="Tempo trascorso:"
+T_restored="Fatto! Il computer ora si riavvia."
+T_failed="Non ha funzionato. I dettagli sono in /var/log/orka-recovery.log - mandameli su Discord."
+T_net="Connessione a Internet..."
+T_no_net="Nessuna connessione a Internet. Le riparazioni che scaricano qualcosa potrebbero fallire (per il Wi-Fi usa il Terminale e nmtui)."
+T_enter="Premi Invio per tornare al menu."
+T_done="Fatto."
+T_pick_user="Scegli un utente:"
+T_no_users="Nessun utente trovato."
+T_desktop_q="Ripristinare pannello, colori, scorciatoie e impostazioni delle finestre per %s?\n\nLe vecchie impostazioni vanno in ~/.config/orka-recovery-backup, non si cancella nulla. I file restano."
+T_desktop_done="Fatto. Le vecchie impostazioni sono in %s."
+T_nvidia_q="Rimuovere il driver NVIDIA? Il sistema torna al driver libero (nouveau). Puoi reinstallare NVIDIA dal Centro OrkaLinux."
+T_shell_hint="Scrivi exit per tornare al menu di Recovery."
+T_space_before="Spazio libero prima:"
+T_space_after="Spazio libero ora:"
+T_working="Al lavoro, i dettagli sono qui sotto."
+;;
+pt)
+T_menu="O que você quer fazer? Seus arquivos na pasta pessoal não são tocados, a menos que você escolha algo que diga o contrário."
+T_restore="Restaurar o sistema a partir de um ponto de restauração"
+T_packages="Reparar programas (atualizações interrompidas, pacotes quebrados)"
+T_boot="Reparar a inicialização (bootloader e initramfs)"
+T_space="Liberar espaço no disco"
+T_desktop="Restaurar a área de trabalho de um usuário"
+T_nvidia="Remover o driver NVIDIA (tela preta depois de instalar)"
+T_password="Mudar a senha de um usuário"
+T_shell="Terminal (avançado)"
+T_continue="Iniciar o OrkaLinux normalmente"
+T_reboot="Reiniciar"
+T_poweroff="Desligar"
+T_ok="OK"; T_cancel="Voltar"; T_yes="Sim"; T_no="Não"
+T_no_points="Não há pontos de restauração. Ative-os no Backup do OrkaLinux quando o sistema voltar a funcionar."
+T_pick_point="Escolha um ponto de restauração:"
+T_restore_q="Restaurar o sistema para o estado de %s?\n\nApps, configurações e drivers voltam àquele estado. Os arquivos da pasta pessoal ficam. No fim o computador reinicia."
+T_restoring="Restaurando o sistema... Não desligue o computador, isso pode levar alguns minutos."
+T_elapsed="Tempo decorrido:"
+T_restored="Pronto! O computador vai reiniciar agora."
+T_failed="Não funcionou. Os detalhes estão em /var/log/orka-recovery.log - mande para mim no Discord."
+T_net="Conectando à Internet..."
+T_no_net="Sem conexão com a Internet. Reparos que baixam algo podem falhar (para Wi-Fi use o Terminal e o nmtui)."
+T_enter="Pressione Enter para voltar ao menu."
+T_done="Pronto."
+T_pick_user="Escolha um usuário:"
+T_no_users="Nenhum usuário encontrado."
+T_desktop_q="Restaurar o painel, as cores, os atalhos e as configurações de janelas de %s?\n\nAs configurações antigas vão para ~/.config/orka-recovery-backup, nada é apagado. Os arquivos ficam."
+T_desktop_done="Pronto. As configurações antigas estão em %s."
+T_nvidia_q="Remover o driver NVIDIA? O sistema volta ao driver livre (nouveau). Você pode instalar a NVIDIA de novo pela Central OrkaLinux."
+T_shell_hint="Digite exit para voltar ao menu do Recovery."
+T_space_before="Espaço livre antes:"
+T_space_after="Espaço livre agora:"
+T_working="Trabalhando, os detalhes aparecem abaixo."
+;;
+uk)
+T_menu="Що ви хочете зробити? Ваші файли в домашній теці не чіпаються, якщо не виберете те, що каже інакше."
+T_restore="Відновити систему з точки відновлення"
+T_packages="Полагодити програми (перервані оновлення, зламані пакунки)"
+T_boot="Полагодити запуск (завантажувач і initramfs)"
+T_space="Звільнити місце на диску"
+T_desktop="Скинути налаштування стільниці користувача"
+T_nvidia="Видалити драйвер NVIDIA (чорний екран після встановлення)"
+T_password="Змінити пароль користувача"
+T_shell="Термінал (для досвідчених)"
+T_continue="Запустити OrkaLinux як звичайно"
+T_reboot="Перезапустити"
+T_poweroff="Вимкнути"
+T_ok="OK"; T_cancel="Назад"; T_yes="Так"; T_no="Ні"
+T_no_points="Немає жодної точки відновлення. Увімкніть їх у Резервних копіях OrkaLinux, коли система знову працюватиме."
+T_pick_point="Виберіть точку відновлення:"
+T_restore_q="Відновити систему до стану з %s?\n\nПрограми, налаштування й драйвери повернуться до того стану. Файли в домашній теці залишаться. Наприкінці комп'ютер перезапуститься."
+T_restoring="Відновлюю систему... Не вимикайте комп'ютер, це може тривати кілька хвилин."
+T_elapsed="Минуло:"
+T_restored="Готово! Зараз комп'ютер перезапуститься."
+T_failed="Не вийшло. Подробиці в /var/log/orka-recovery.log - надішліть їх мені в Discord."
+T_net="Підключення до інтернету..."
+T_no_net="Немає інтернету. Ремонт, якому треба щось завантажити, може не вдатися (для Wi-Fi скористайтеся Терміналом і nmtui)."
+T_enter="Натисніть Enter, щоб повернутися до меню."
+T_done="Готово."
+T_pick_user="Виберіть користувача:"
+T_no_users="Користувачів не знайдено."
+T_desktop_q="Скинути панель, кольори, скорочення й налаштування вікон для %s?\n\nСтарі налаштування переносяться в ~/.config/orka-recovery-backup, нічого не видаляється. Файли залишаються."
+T_desktop_done="Готово. Старі налаштування в %s."
+T_nvidia_q="Видалити драйвер NVIDIA? Система повернеться до відкритого драйвера (nouveau). NVIDIA можна знову встановити з Центру OrkaLinux."
+T_shell_hint="Введіть exit, щоб повернутися до меню Recovery."
+T_space_before="Вільне місце до:"
+T_space_after="Вільне місце зараз:"
+T_working="Працюю, подробиці нижче."
+;;
+esac
+
+wt() {
+	whiptail --backtitle "$T_back" --ok-button "$T_ok" --cancel-button "$T_cancel" \
+		--yes-button "$T_yes" --no-button "$T_no" "$@" 3>&1 1>&2 2>&3
+}
+
+msg() { wt --title "OrkaLinux Recovery" --msgbox "$1" 12 70; }
+
+ask() { wt --title "OrkaLinux Recovery" --defaultno --yesno "$1" 14 74; }
+
+console_begin() {
+	clear
+	printf '\033[1;44;97m %-78s\033[0m\n\n' "$T_back"
+	printf '%s\n\n' "$1"
+	echo "=== $(date '+%F %T') $1" >> "$LOG"
+}
+
+console_end() {
+	echo
+	if [ "$1" -eq 0 ]; then
+		printf '\033[1;32m%s\033[0m\n' "$T_done"
+	else
+		printf '\033[1;31m%s\033[0m\n' "$T_failed"
+	fi
+	printf '%s' "$T_enter"
+	read -r _
+}
+
+run() {
+	echo "\$ $*" | tee -a "$LOG"
+	"$@" 2>&1 | tee -a "$LOG"
+	return "${PIPESTATUS[0]}"
+}
+
+network() {
+	echo "$T_net"
+	systemctl start NetworkManager >/dev/null 2>&1
+	if ! nm-online -q -t 30; then
+		echo "$T_no_net"
+		return 1
+	fi
+	return 0
+}
+
+pick_user() {
+	local items=()
+	while IFS=: read -r name _ uid _ _ home _; do
+		[ "$uid" -ge 1000 ] && [ "$uid" -lt 60000 ] && [ -d "$home" ] && items+=("$name" "$home")
+	done < /etc/passwd
+	if [ ${#items[@]} -eq 0 ]; then
+		msg "$T_no_users"
+		return 1
+	fi
+	wt --title "OrkaLinux Recovery" --menu "$T_pick_user" 16 70 6 "${items[@]}"
+}
+
+do_restore() {
+	local list items=() name date pick
+	list="$("$HELPER" list 2>/dev/null | python3 -c '
+import json, sys, time
+try:
+    data = json.load(sys.stdin)
+except ValueError:
+    sys.exit(0)
+for s in sorted(data.get("snapshots", []), key=lambda s: s["name"], reverse=True):
+    d = time.strftime("%d.%m.%Y %H:%M", time.strptime(s["name"], "%Y-%m-%d_%H-%M-%S"))
+    print(s["name"] + "\t" + (d + "   " + s["comment"]).strip())
+')"
+	if [ -z "$list" ]; then
+		msg "$T_no_points"
+		return
+	fi
+	while IFS=$'\t' read -r name date; do
+		items+=("$name" "$date")
+	done <<< "$list"
+	pick="$(wt --title "OrkaLinux Recovery" --notags --menu "$T_pick_point" 18 76 8 "${items[@]}")" || return
+	date="$(printf '%s\n' "$list" | awk -F'\t' -v n="$pick" '$1 == n { print $2 }')"
+	ask "$(printf "$T_restore_q" "${date%%   *}")" || return
+	run_restore "$pick"
+}
+
+RLOG=/run/orka-recovery-restore.log
+DONE_RE='Restore completed|completed successfully|Rebooting|sent [0-9,.]+ bytes'
+run_restore() {
+	local pick="$1" start=$SECONDS rc pct last el out prompt
+	echo "=== $(date '+%F %T') restore $pick" > "$RLOG"
+	"$HELPER" restore "$pick" >> "$RLOG" 2>&1 &
+	local pid=$!
+	prompt="$(printf '%s\n\n%s 0:00\n-' "$T_restoring" "$T_elapsed")"
+	while kill -0 "$pid" 2>/dev/null; do
+		out="$(tail -c 8192 "$RLOG" | tr '\r' '\n')"
+		el=$((SECONDS - start))
+		if printf '%s\n' "$out" | grep -Eq "$DONE_RE"; then
+			pct=100
+			last="$T_restored"
+		else
+			pct="$(printf '%s\n' "$out" | grep -o '[0-9]\{1,3\}\(\.[0-9]*\)\? *%' | tail -n 1 | sed 's/[.% ].*//')"
+			[ "$pct" = 0 ] && pct=""
+			last="$(printf '%s\n' "$out" | grep -v '^[[:space:]]*$' | grep -v '^\*\**$' | tail -n 1 | cut -c 1-60)"
+			[ -n "$pct" ] || pct=$(awk -v t="$el" 'BEGIN { printf "%d", 95 * (1 - exp(-t * 0.693 / 120)) }')
+		fi
+		printf 'XXX\n%s\n%s\n\n%s %d:%02d\n%s\nXXX\n' "$pct" "$T_restoring" "$T_elapsed" $((el / 60)) $((el % 60)) "${last:--}"
+		sleep 1
+	done | whiptail --backtitle "$T_back" --title "OrkaLinux Recovery" --gauge "$prompt" 13 72 0
+	wait "$pid"
+	rc=$?
+	cat "$RLOG" >> "$LOG" 2>/dev/null
+	if [ "$rc" -eq 0 ]; then
+		msg "$T_restored"
+		systemctl reboot
+		sleep 30
+	else
+		msg "$T_failed"
+	fi
+}
+
+do_packages() {
+	console_begin "$T_packages"
+	network
+	local rc=0
+	run dpkg --configure -a || rc=1
+	run apt-get -f install -y || rc=1
+	run apt-get update || rc=1
+	run apt-get -f install -y || rc=1
+	console_end $rc
+}
+
+do_boot() {
+	console_begin "$T_boot"
+	local rc=0
+	mount -a 2>/dev/null
+	run update-initramfs -u -k all || rc=1
+	if [ -d /boot/efi/loader ] && command -v bootctl >/dev/null; then
+		run bootctl update --graceful || rc=1
+		for k in /boot/vmlinuz-*; do
+			[ -e "$k" ] || continue
+			v="${k#/boot/vmlinuz-}"
+			run kernel-install add "$v" "$k" "/boot/initrd.img-$v" || rc=1
+		done
+	elif [ -d /sys/firmware/efi ]; then
+		run grub-install --target=x86_64-efi --efi-directory=/boot/efi --bootloader-id=debian \
+			--force-extra-removable --recheck || rc=1
+		run update-grub || rc=1
+	else
+		disk="$(lsblk -no PKNAME "$(findmnt -no SOURCE /)" 2>/dev/null | head -n 1)"
+		if [ -n "$disk" ]; then
+			run grub-install "/dev/$disk" || rc=1
+		fi
+		run update-grub || rc=1
+	fi
+	console_end $rc
+}
+
+do_space() {
+	console_begin "$T_space"
+	echo "$T_space_before $(df -h --output=avail / | tail -n 1 | tr -d ' ')"
+	echo
+	run apt-get clean
+	run journalctl --vacuum-size=100M
+	command -v flatpak >/dev/null && run flatpak uninstall --unused -y --noninteractive
+	rm -rf /var/tmp/* 2>/dev/null
+	echo
+	echo "$T_space_after $(df -h --output=avail / | tail -n 1 | tr -d ' ')"
+	console_end 0
+}
+
+do_desktop() {
+	local user home backup f
+	user="$(pick_user)" || return
+	home="$(getent passwd "$user" | cut -d: -f6)"
+	ask "$(printf "$T_desktop_q" "$user")" || return
+	backup="$home/.config/orka-recovery-backup/$(date +%Y-%m-%d_%H-%M)"
+	mkdir -p "$backup"
+	for f in plasma-org.kde.plasma.desktop-appletsrc plasmashellrc plasmarc kwinrc kwinrulesrc \
+		kdeglobals kglobalshortcutsrc khotkeysrc kscreenlockerrc ksplashrc kcminputrc \
+		plasma-localerc powermanagementprofilesrc; do
+		[ -e "$home/.config/$f" ] && mv "$home/.config/$f" "$backup/"
+	done
+	rm -rf "$home"/.cache/plasma* "$home"/.cache/ksycoca6* "$home"/.cache/kwin 2>/dev/null
+	chown -R "$user:" "$home/.config/orka-recovery-backup"
+	echo "=== $(date '+%F %T') desktop reset $user -> $backup" >> "$LOG"
+	msg "$(printf "$T_desktop_done" "$backup")"
+}
+
+nvidia_installed() {
+	dpkg-query -W -f '${Package} ${Status}\n' 'nvidia-*' 'libnvidia-*' 2>/dev/null | grep -q ' installed$'
+}
+
+do_nvidia() {
+	ask "$T_nvidia_q" || return
+	console_begin "$T_nvidia"
+	local pkgs rc=0
+	pkgs="$(dpkg-query -W -f '${Package} ${Status}\n' 'nvidia-*' 'libnvidia-*' 'firmware-nvidia-*' 2>/dev/null \
+		| awk '$NF == "installed" { print $1 }')"
+	[ -n "$pkgs" ] && { run apt-get purge -y $pkgs || rc=1; }
+	run apt-get autoremove -y || rc=1
+	run update-initramfs -u -k all || rc=1
+	console_end $rc
+}
+
+do_password() {
+	local user
+	user="$(pick_user)" || return
+	clear
+	printf '\033[1;44;97m %-78s\033[0m\n\n' "$T_back"
+	passwd "$user"
+	printf '\n%s' "$T_enter"
+	read -r _
+}
+
+do_shell() {
+	clear
+	printf '\033[1;44;97m %-78s\033[0m\n\n%s\n\n' "$T_back" "$T_shell_hint"
+	bash -l
+}
+
+clear
+
+PENDING=/var/lib/orkalinux/restore-pending
+if [ -s "$PENDING" ]; then
+	pending="$(head -n 1 "$PENDING")"
+	rm -f "$PENDING"
+	case "$pending" in
+		[0-9][0-9][0-9][0-9]-[0-9][0-9]-[0-9][0-9]_[0-9][0-9]-[0-9][0-9]-[0-9][0-9]) run_restore "$pending" ;;
+	esac
+fi
+
+while true; do
+	items=(
+		restore "$T_restore"
+		packages "$T_packages"
+		boot "$T_boot"
+		space "$T_space"
+		desktop "$T_desktop"
+	)
+	nvidia_installed && items+=(nvidia "$T_nvidia")
+	admin_allowed && items+=(
+		password "$T_password"
+		shell "$T_shell"
+	)
+	items+=(
+		continue "$T_continue"
+		reboot "$T_reboot"
+		poweroff "$T_poweroff"
+	)
+	choice="$(wt --title "OrkaLinux Recovery" --notags --nocancel --menu "$T_menu" 22 78 12 "${items[@]}")" || continue
+	case "$choice" in
+		restore) do_restore ;;
+		packages) do_packages ;;
+		boot) do_boot ;;
+		space) do_space ;;
+		desktop) do_desktop ;;
+		nvidia) do_nvidia ;;
+		password) admin_allowed && do_password ;;
+		shell) admin_allowed && do_shell ;;
+		continue) clear; systemctl --no-block isolate graphical.target; exit 0 ;;
+		reboot) clear; systemctl reboot; sleep 30 ;;
+		poweroff) clear; systemctl poweroff; sleep 30 ;;
+	esac
+done

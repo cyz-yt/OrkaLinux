@@ -1,0 +1,8 @@
+#!/bin/sh
+set -e
+
+for l in pl_PL.UTF-8 en_US.UTF-8; do
+	sed -i "s/^# *\($l UTF-8\)/\1/" /etc/locale.gen
+	grep -q "^$l UTF-8" /etc/locale.gen || echo "$l UTF-8" >> /etc/locale.gen
+done
+locale-gen

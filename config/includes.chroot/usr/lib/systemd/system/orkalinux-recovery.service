@@ -1,0 +1,22 @@
+[Unit]
+Description=OrkaLinux Recovery
+DefaultDependencies=no
+Conflicts=shutdown.target getty@tty1.service
+After=basic.target plymouth-start.service
+Before=shutdown.target
+
+[Service]
+Type=idle
+Environment=HOME=/root
+WorkingDirectory=-/root
+ExecStartPre=-/usr/bin/plymouth --wait quit
+ExecStart=/usr/sbin/orka-recovery
+StandardInput=tty-force
+StandardOutput=inherit
+StandardError=inherit
+TTYPath=/dev/tty1
+TTYReset=yes
+TTYVHangup=yes
+KillMode=process
+IgnoreSIGPIPE=no
+SendSIGHUP=yes

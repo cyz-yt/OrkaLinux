@@ -1,0 +1,12 @@
+{
+    "KPlugin": {
+        "Authors": [
+            {
+                "Name": "UrbeQX"
+            }
+        ],
+        "Id": "OrkaLinux-EC2-Chlodnia",
+        "Name": "Północna Chłodnia Kominowa EC-2"
+    },
+    "KPackageStructure": "Wallpaper/Images"
+}

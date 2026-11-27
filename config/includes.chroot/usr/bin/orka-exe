@@ -1,0 +1,51 @@
+#!/usr/bin/env python3
+import os
+import shutil
+import subprocess
+import sys
+
+sys.path.insert(0, "/usr/share/orkalinux/lib")
+import orka
+from orka import Gtk
+
+APP = "com.usebottles.bottles"
+TEXTS = {
+    "en": ("Windows program", "To run {f} you need Bottles - it runs Windows programs on Linux.\n\nInstall Bottles now? It takes a few minutes.", "Install Bottles", "Cancel"),
+    "pl": ("Program z Windowsa", "Żeby uruchomić {f}, potrzebny jest Bottles - uruchamia programy z Windowsa na Linuksie.\n\nZainstalować Bottles teraz? To zajmie kilka minut.", "Zainstaluj Bottles", "Anuluj"),
+    "de": ("Windows-Programm", "Um {f} zu starten, brauchst du Bottles - es startet Windows-Programme unter Linux.\n\nBottles jetzt installieren? Das dauert ein paar Minuten.", "Bottles installieren", "Abbrechen"),
+    "fr": ("Programme Windows", "Pour lancer {f}, il faut Bottles - il fait tourner les programmes Windows sous Linux.\n\nInstaller Bottles maintenant ? Cela prend quelques minutes.", "Installer Bottles", "Annuler"),
+}
+
+
+def installed():
+    try:
+        out = subprocess.run(["flatpak", "info", APP], capture_output=True).returncode
+    except OSError:
+        return False
+    return out == 0
+
+
+def main():
+    files = [f for f in sys.argv[1:] if f]
+    if installed():
+        os.execvp("flatpak", ["flatpak", "run", APP] + files)
+    title, text, ok, cancel = TEXTS.get(orka.system_lang(), TEXTS["en"])
+    name = os.path.basename(files[0]) if files else "this file"
+    dialog = Gtk.MessageDialog(message_type=Gtk.MessageType.QUESTION, text=title,
+                               secondary_text=text.format(f=name))
+    dialog.add_buttons(cancel, Gtk.ResponseType.CANCEL, ok, Gtk.ResponseType.OK)
+    dialog.set_icon_name("com.usebottles.bottles")
+    answer = dialog.run()
+    dialog.destroy()
+    if answer != Gtk.ResponseType.OK:
+        return
+    quoted = " ".join("'" + f.replace("'", "'\\''") + "'" for f in files)
+    script = ("flatpak install -y --system flathub " + APP + " && flatpak run " + APP + " " + quoted
+              + " || { echo; read -r _; }")
+    term = shutil.which("kitty") or shutil.which("konsole")
+    args = [term, "-e", "sh", "-c", script] if term and term.endswith("konsole") else [term, "sh", "-c", script]
+    subprocess.Popen(args)
+
+
+if __name__ == "__main__":
+    main()

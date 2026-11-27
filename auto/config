@@ -11,6 +11,7 @@ lb config noauto \
 	--debian-installer none \
 	--security true \
 	--updates true \
+	--backports true \
 	--firmware-chroot true \
 	--memtest none \
 	--zsync false \
@@ -18,5 +19,5 @@ lb config noauto \
 	--iso-publisher "_inc0gnit0" \
 	--iso-volume "$ORKA_NAME $ORKA_VERSION" \
 	--image-name "$ORKA_NAME-$ORKA_VERSION" \
-	--bootappend-live "boot=live components quiet splash username=orka hostname=orkalinux locales=pl_PL.UTF-8 keyboard-layouts=pl timezone=Europe/Warsaw" \
+	--bootappend-live "boot=live components noeject quiet splash username=orka hostname=orkalinux locales=en_US.UTF-8 keyboard-layouts=us timezone=Europe/Warsaw" \
 	"${@}"

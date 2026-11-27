@@ -1,0 +1,8 @@
+{
+    "KPlugin": {
+        "Authors": [ { "Name": "_inc0gnit0" } ],
+        "Id": "OrkaLinux-Undertow-Clear",
+        "Name": "Undertow OrkaLinux (bez logo)"
+    },
+    "KPackageStructure": "Wallpaper/Images"
+}

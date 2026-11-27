@@ -1,0 +1,35 @@
+#!/bin/sh
+if python3 -c 'import sys; sys.path.insert(0, "/usr/share/orkalinux/lib"); import orka; sys.exit(0 if orka.is_dark_mode() else 1)' 2>/dev/null; then
+	branding=orkalinux
+else
+	branding=orkalinux-light
+fi
+if [ -d "/etc/calamares/branding/$branding" ]; then
+	sudo -n sed -i "s/^branding:.*/branding: $branding/" /etc/calamares/settings.conf 2>/dev/null || true
+fi
+
+lang=""
+[ -r "$HOME/.config/orkalinux/lang" ] && lang="$(head -n 1 "$HOME/.config/orkalinux/lang")"
+case "$lang" in
+	pl) loc=pl_PL.UTF-8 ;;
+	en) loc=en_US.UTF-8 ;;
+	de) loc=de_DE.UTF-8 ;;
+	fr) loc=fr_FR.UTF-8 ;;
+	es) loc=es_ES.UTF-8 ;;
+	it) loc=it_IT.UTF-8 ;;
+	pt) loc=pt_BR.UTF-8 ;;
+	uk) loc=uk_UA.UTF-8 ;;
+	*) lang="${LANGUAGE%%:*}"; lang="${lang%%_*}"; loc="${LANG:-en_US.UTF-8}" ;;
+esac
+
+if sudo -n true 2>/dev/null; then
+	sudo -n mv /etc/fstab /etc/fstab.orig.calamares 2>/dev/null
+	xhost +si:localuser:root >/dev/null 2>&1
+	sudo -n env LANG="$loc" LC_MESSAGES="$loc" LANGUAGE="${lang:-en}" \
+		DISPLAY="$DISPLAY" XAUTHORITY="$XAUTHORITY" QT_QPA_PLATFORM=xcb \
+		QT_AUTO_SCREEN_SCALE_FACTOR=1 QML_XHR_ALLOW_FILE_READ=1 calamares -D 6 "$@"
+	xhost -si:localuser:root >/dev/null 2>&1
+	sudo -n mv /etc/fstab.orig.calamares /etc/fstab 2>/dev/null
+	exit 0
+fi
+exec calamares-install-debian "$@"

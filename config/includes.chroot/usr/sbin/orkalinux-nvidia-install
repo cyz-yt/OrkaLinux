@@ -1,0 +1,67 @@
+#!/bin/sh
+set -u
+lang="${1:-pl}"
+msg() { if [ "$lang" = pl ]; then printf '%s\n' "$1"; else printf '%s\n' "$2"; fi; }
+
+if [ "$(id -u)" -ne 0 ]; then
+	msg "Uruchom przez pkexec albo sudo." "Run it with pkexec or sudo."
+	exit 1
+fi
+if [ -d /run/live/medium ]; then
+	msg "W wersji live sterownik zniknąłby po restarcie – najpierw zainstaluj OrkaLinux." \
+		"In the live system the driver would be gone after a restart – install OrkaLinux first."
+	exit 1
+fi
+
+export DEBIAN_FRONTEND=noninteractive
+
+msg ">> Pobieram listy pakietów..." ">> Updating package lists..."
+if ! apt-get update; then
+	msg "Nie udało się pobrać list pakietów – sprawdź połączenie z internetem." \
+		"Could not update package lists – check your internet connection."
+	exit 1
+fi
+
+rel=""
+if apt-cache madison nvidia-driver 2>/dev/null | grep -q trixie-backports; then
+	rel=/trixie-backports
+fi
+
+msg ">> Instaluję sterownik NVIDIA (to potrwa kilka minut)..." \
+	">> Installing the NVIDIA driver (this takes a few minutes)..."
+if ! apt-get install -y "nvidia-driver$rel" "nvidia-kernel-dkms$rel" \
+		firmware-misc-nonfree linux-headers-amd64 mokutil; then
+	msg "Instalacja się nie udała – zrób zrzut tego okna i wrzuć go na Discorda OrkaLinux." \
+		"Installation failed – take a screenshot of this window and post it on the OrkaLinux Discord."
+	exit 1
+fi
+
+cat > /etc/modprobe.d/orkalinux-nvidia.conf <<'EOF'
+options nvidia-drm modeset=1 fbdev=1
+EOF
+update-initramfs -u
+
+if mokutil --sb-state 2>/dev/null | grep -qi enabled; then
+	key=/var/lib/dkms/mok.pub
+	if [ -f "$key" ] && ! mokutil --test-key "$key" 2>/dev/null | grep -qi "already enrolled"; then
+		echo
+		msg "Masz włączony Secure Boot – trzeba raz zatwierdzić klucz sterownika:" \
+			"Secure Boot is on – the driver's key has to be approved once:"
+		msg "  1. Wymyśl jednorazowe hasło (najlepiej same cyfry, np. 12345678) i wpisz je dwa razy poniżej." \
+			"  1. Pick a one-time password (digits are best, e.g. 12345678) and type it twice below."
+		msg "  2. Po restarcie pojawi się niebieski ekran \"MOK management\". Wybierz:" \
+			"  2. After the restart a blue \"MOK management\" screen appears. Choose:"
+		msg "     Enroll MOK > Continue > Yes, wpisz to samo hasło i wybierz Reboot." \
+			"     Enroll MOK > Continue > Yes, type the same password and choose Reboot."
+		msg "  Na tamtym ekranie klawiatura jest amerykańska, dlatego najlepiej hasło z samych cyfr." \
+			"  That screen uses a US keyboard layout, so digits are the safest choice."
+		echo
+		until mokutil --import "$key"; do
+			msg "Hasła się nie zgadzają – spróbuj jeszcze raz." "The passwords do not match – try again."
+		done
+	fi
+fi
+
+echo
+msg "Gotowe! Uruchom komputer ponownie, żeby włączyć sterownik NVIDIA." \
+	"Done! Restart your computer to start using the NVIDIA driver."

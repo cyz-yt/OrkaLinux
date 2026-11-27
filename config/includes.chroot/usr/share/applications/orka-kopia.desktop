@@ -1,0 +1,16 @@
+[Desktop Entry]
+Type=Application
+Name=OrkaLinux Backup
+Name[pl]=Kopia zapasowa OrkaLinux
+Name[de]=OrkaLinux Sicherung
+Name[fr]=Sauvegarde OrkaLinux
+Comment=Restore points for the system
+Comment[pl]=Punkty przywracania systemu
+Comment[de]=Wiederherstellungspunkte für das System
+Comment[fr]=Points de restauration du système
+Exec=/usr/share/orka-kopia/orka-kopia.py
+Icon=orka-kopia
+StartupWMClass=orka-kopia
+Terminal=false
+Categories=Settings;System;
+Keywords=backup;restore;snapshot;timeshift;

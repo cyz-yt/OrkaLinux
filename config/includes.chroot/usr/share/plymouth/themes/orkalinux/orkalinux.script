@@ -1,6 +1,63 @@
-wallpaper_image = Image("OrkaLinux.png");
-screen_width = Window.GetWidth();
-screen_height = Window.GetHeight();
-resized = wallpaper_image.Scale(screen_width, screen_height);
-sprite = Sprite(resized);
-sprite.SetPosition(0, 0, -100);
+
+Window.SetBackgroundTopColor(0.06, 0.07, 0.13);
+Window.SetBackgroundBottomColor(0.06, 0.07, 0.13);
+
+screen_w = Window.GetWidth();
+screen_h = Window.GetHeight();
+
+scale = screen_h / 1080;
+if (scale > 1) scale = 1;
+if (scale < 0.6) scale = 0.6;
+
+logo_image = Image("logo.png");
+logo_image = logo_image.Scale(logo_image.GetWidth() * scale, logo_image.GetHeight() * scale);
+logo = Sprite(logo_image);
+logo.SetX(screen_w / 2 - logo_image.GetWidth() / 2);
+logo.SetY(screen_h * 0.42 - logo_image.GetHeight() / 2);
+
+track_image = Image("track.png");
+track_image = track_image.Scale(track_image.GetWidth() * scale, track_image.GetHeight());
+track = Sprite(track_image);
+track_x = screen_w / 2 - track_image.GetWidth() / 2;
+track_y = screen_h * 0.42 + logo_image.GetHeight() / 2 + 70 * scale;
+track.SetPosition(track_x, track_y, 1);
+
+bar_image = Image("bar.png");
+bar_image = bar_image.Scale(bar_image.GetWidth() * scale, bar_image.GetHeight());
+bar = Sprite(bar_image);
+bar.SetY(track_y);
+bar.SetZ(2);
+travel = track_image.GetWidth() - bar_image.GetWidth();
+
+frame = 0;
+cycle = 140;
+
+fun refresh_callback()
+{
+	global.frame++;
+	p = (global.frame % cycle) / cycle;
+	pos = 0.5 - 0.5 * Math.Cos(2 * Math.Pi * p);
+	bar.SetX(track_x + travel * pos);
+}
+
+Plymouth.SetRefreshFunction(refresh_callback);
+
+fun display_password_callback(prompt, bullets)
+{
+	text = "";
+	for (i = 0; i < bullets; i++)
+		text = text + "•";
+	global.prompt_sprite = Sprite(Image.Text(prompt, 1, 1, 1));
+	global.prompt_sprite.SetPosition(screen_w / 2 - global.prompt_sprite.GetImage().GetWidth() / 2, track_y + 40 * scale, 10);
+	global.bullets_sprite = Sprite(Image.Text(text, 1, 1, 1));
+	global.bullets_sprite.SetPosition(screen_w / 2 - global.bullets_sprite.GetImage().GetWidth() / 2, track_y + 70 * scale, 10);
+}
+
+fun display_normal_callback()
+{
+	global.prompt_sprite = NULL;
+	global.bullets_sprite = NULL;
+}
+
+Plymouth.SetDisplayPasswordFunction(display_password_callback);
+Plymouth.SetDisplayNormalFunction(display_normal_callback);

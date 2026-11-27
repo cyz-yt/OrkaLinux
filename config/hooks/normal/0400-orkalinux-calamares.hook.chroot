@@ -1,7 +1,90 @@
 #!/bin/sh
 set -e
 
-sed -i 's/^branding:.*/branding: orkalinux/' /etc/calamares/settings.conf
-grep -q '^branding: orkalinux$' /etc/calamares/settings.conf
+conf=/etc/calamares/settings.conf
+sed -i 's/^branding:.*/branding: orkalinux/' "$conf"
+grep -q '^branding: orkalinux$' "$conf"
+
+if grep -q '^prompt-install:' "$conf"; then
+	sed -i 's/^prompt-install:.*/prompt-install: false/' "$conf"
+else
+	echo 'prompt-install: false' >> "$conf"
+fi
+grep -q '^prompt-install: false$' "$conf"
+
+if ! grep -q 'packagechooser@bootloader' "$conf"; then
+	sed -i '0,/^  - partition$/s//  - partition\n  - packagechooser@bootloader/' "$conf"
+	sed -i 's/^  - bootloader$/  - bootloader\n  - contextualprocess@systemdboot/' "$conf"
+	cat >> "$conf" <<'EOF'
+
+instances:
+- id: bootloader
+  module: packagechooser
+  config: packagechooser-bootloader.conf
+- id: systemdboot
+  module: contextualprocess
+  config: contextualprocess-systemdboot.conf
+EOF
+fi
+test "$(grep -c 'packagechooser@bootloader' "$conf")" = 1
+
+if ! grep -q 'packagechooser@login' "$conf"; then
+	sed -i 's/^  - packagechooser@bootloader$/  - packagechooser@bootloader\n  - packagechooser@login\n  - packagechooser@boot/' "$conf"
+	sed -i 's/^  - contextualprocess@systemdboot$/  - contextualprocess@systemdboot\n  - contextualprocess@look/' "$conf"
+	cat >> "$conf" <<'EOF'
+- id: login
+  module: packagechooser
+  config: packagechooser-login.conf
+- id: boot
+  module: packagechooser
+  config: packagechooser-boot.conf
+- id: look
+  module: contextualprocess
+  config: contextualprocess-look.conf
+EOF
+fi
+test "$(grep -c '^  - packagechooser@login$' "$conf")" = 1
+test "$(grep -c '^  - contextualprocess@look$' "$conf")" = 1
+test "$(grep -c 'contextualprocess@systemdboot' "$conf")" = 1
+chmod 755 /usr/share/orkalinux/use-systemd-boot
+
+users=/etc/calamares/modules/users.conf
+sed -i '/^ *libpwquality:/,/^ *- minclass=/d' "$users"
+sed -i '/^ *nonempty:/d' "$users"
+if grep -q '^ *minLength:' "$users"; then
+	sed -i 's/^\( *minLength:\).*/\1 1/' "$users"
+else
+	sed -i 's/^passwordRequirements:.*$/passwordRequirements:\n    minLength: 1/' "$users"
+fi
+sed -i '/^allowWeakPasswords/d' "$users"
+echo 'allowWeakPasswords: false' >> "$users"
+grep -q '^ *minLength: 1$' "$users"
+! grep -q libpwquality "$users"
+
+helper=/usr/share/calamares/helpers/calamares-sources-final
+test -e "$helper"
+dpkg-divert --quiet --local --rename --divert "$helper.debian" --add "$helper"
+install -m 755 /usr/share/orkalinux/calamares-sources-final "$helper"
 
 echo "grub-efi-amd64 grub2/force_efi_extra_removable boolean true" | debconf-set-selections
+
+for f in /usr/share/applications/*calamares*.desktop; do
+	[ -f "$f" ] && sed -i 's/^Icon=.*/Icon=orka-install/' "$f"
+done
+
+dark=/etc/calamares/branding/orkalinux
+light=/etc/calamares/branding/orkalinux-light
+rm -rf "$light"
+cp -a "$dark" "$light"
+sed -i \
+	-e 's/#0f1120/#F4F6FC/g' -e 's/#eceefa/#1B1F3B/g' -e 's/#1b1e36/#FFFFFF/g' \
+	-e 's/#3a4070/#C3C9E6/g' -e 's/#181b32/#FFFFFF/g' -e 's/#2c3156/#D3D8EE/g' \
+	-e 's/#5a6088/#8C92B4/g' -e 's/#1f2340/#E6E9FB/g' -e 's/#13152a/#FFFFFF/g' \
+	-e 's/#171a31/#F6F7FD/g' -e 's/#20243f/#ECEEFB/g' -e 's/#262a48/#E1E4F3/g' \
+	-e 's/#a0a6c4/#5A6088/g' -e 's/#1c1f38/#E1E4F3/g' -e 's/#8a90b8/#5A6088/g' \
+	-e 's/#1f2350/#E3E6FD/g' -e 's/#aab1ff/#4F58F0/g' -e 's/#fffffe/#12152E/g' \
+	"$light/stylesheet.qss" "$light/calamares-sidebar.qml" "$light/calamares-navigation.qml" "$light/branding.desc"
+sed -i -e 's/^componentName:.*/componentName:  orkalinux-light/' \
+	-e 's/"orkalinux-logo-white.png"/"orkalinux-logo.png"/g' "$light/branding.desc"
+grep -q '^componentName:  orkalinux-light$' "$light/branding.desc"
+chmod 755 /usr/bin/orka-install
